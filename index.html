@@ -1,0 +1,2149 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Master Modul Fluida</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,300..800&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&display=swap">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+  svg: { fontCache: 'global' },
+  options: { enableMenu: false },
+  startup: { typeset: true }
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-svg.js"></script>
+<style>
+/* Layout: a single water column. Reading depth = scroll depth; a gauge on the left reads pressure as you sink through 17 chapters. */
+:root {
+  --bg: #EAF4F5;          /* foam: the surface */
+  --bg-deep: #CFE3E8;     /* the same water, 50 m down */
+  --panel: #F8FCFC;
+  --panel-2: #DDEEF1;
+  --ink: #0C2A38;
+  --ink-soft: #3D5D6B;
+  --line: #B7D2D9;
+  --tide: #1B6F8E;        /* primary water blue */
+  --tide-2: #2B93B3;
+  --water: rgba(43, 147, 179, .28);
+  --water-strong: rgba(27, 111, 142, .55);
+  --lab: #0B2F45;         /* simulation tank background */
+  --lab-ink: #DDF1F6;
+  --lab-line: rgba(221, 241, 246, .18);
+  --buoy: #E9A92A;        /* marker buoy: answers, traps, the one accent */
+  --buoy-soft: rgba(233, 169, 42, .16);
+  --kelp: #2E8B66;
+  --flare: #C9435A;
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Literata", "Iowan Old Style", Georgia, serif;
+  --step--1: .875rem;
+  --step-0: 1.0625rem;
+  --step-1: 1.3rem;
+  --step-2: 1.65rem;
+  --step-3: 2.2rem;
+  --step-4: clamp(2.6rem, 6vw, 3.6rem);
+  --rail: 132px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #071B28; --bg-deep: #020B12; --panel: #0C2534; --panel-2: #10303F;
+    --ink: #DCECF1; --ink-soft: #92B2BE; --line: #1E4456;
+    --tide: #4FB6D4; --tide-2: #7BD0E6;
+    --water: rgba(79, 182, 212, .22); --water-strong: rgba(79, 182, 212, .5);
+    --lab: #04141E; --lab-ink: #D4EEF5; --lab-line: rgba(212, 238, 245, .14);
+    --buoy: #F2BA48; --buoy-soft: rgba(242, 186, 72, .14);
+    --kelp: #4CC08F; --flare: #F07088;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #071B28; --bg-deep: #020B12; --panel: #0C2534; --panel-2: #10303F;
+  --ink: #DCECF1; --ink-soft: #92B2BE; --line: #1E4456;
+  --tide: #4FB6D4; --tide-2: #7BD0E6;
+  --water: rgba(79, 182, 212, .22); --water-strong: rgba(79, 182, 212, .5);
+  --lab: #04141E; --lab-ink: #D4EEF5; --lab-line: rgba(212, 238, 245, .14);
+  --buoy: #F2BA48; --buoy-soft: rgba(242, 186, 72, .14);
+  --kelp: #4CC08F; --flare: #F07088;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+body::after { /* the water gets darker the deeper you read */
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: var(--bg-deep); opacity: var(--depth, 0);
+}
+::selection { background: var(--buoy); color: #0C2A38; }
+a { color: var(--tide); text-underline-offset: 3px; }
+:focus-visible { outline: 3px solid var(--buoy); outline-offset: 3px; border-radius: 4px; }
+
+h1, h2, h3, h4, .ui { font-family: var(--font-display); }
+h2, h3 { text-wrap: balance; }
+p { margin: 0; }
+.prose > * + * { margin-top: 1rem; }
+em { font-style: italic; }
+mjx-container { color: inherit; }
+mjx-container[display="true"] { margin: .6em 0 !important; overflow-x: auto; overflow-y: hidden; padding-block: 4px; }
+
+/* ---------- shell ---------- */
+.shell {
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+@media (min-width: 1100px) { .shell { padding-left: calc(var(--rail) + 40px); } }
+.col { max-width: 760px; margin-inline: auto; }
+.wide { max-width: 1000px; margin-inline: auto; }
+
+/* ---------- hero ---------- */
+.hero { position: relative; padding-block: 28px 40px; }
+.hero-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  font-family: var(--font-display); font-size: var(--step--1); color: var(--ink-soft); }
+.hero-top b { color: var(--tide); font-weight: 650; }
+.hero-stage { position: relative; margin-top: 14px; height: clamp(150px, 34vw, 400px); }
+#heroCanvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; touch-action: pan-y; }
+.hero h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.hero-sub { display: grid; grid-template-columns: 1.3fr 1fr; gap: 28px 40px; margin-top: 18px; align-items: start; }
+.hero-sub .lead { font-size: var(--step-1); line-height: 1.5; max-width: 34ch; }
+.hero-sub .lead strong { font-weight: 600; color: var(--tide); }
+.hero-hint { font-family: var(--font-display); font-size: var(--step--1); color: var(--ink-soft); margin-top: 12px; }
+.route { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; font-family: var(--font-display); }
+.route li a { display: grid; grid-template-columns: 70px 1fr; gap: 10px; padding: 10px 12px; text-decoration: none; color: var(--ink);
+  border-radius: 10px; transition: background .2s; }
+.route li a:hover { background: var(--panel-2); }
+.route .r-bab { color: var(--tide); font-weight: 700; font-variant-numeric: tabular-nums; }
+.route .r-txt { font-size: .95rem; line-height: 1.35; }
+.route .r-txt small { display: block; color: var(--ink-soft); font-size: .8rem; }
+.route-title { font-family: var(--font-display); font-weight: 650; margin-bottom: 6px; font-size: 1rem; }
+.scope { margin-top: 26px; display: flex; gap: 14px; align-items: flex-start; background: var(--buoy-soft); padding: 14px 18px; border-radius: 14px; font-size: .95rem; line-height: 1.6; }
+.scope svg { flex: none; margin-top: 3px; }
+@media (max-width: 760px) { .hero-sub { grid-template-columns: 1fr; } }
+
+/* ---------- depth rail (desktop) ---------- */
+.rail { position: fixed; z-index: 20; left: max(16px, env(safe-area-inset-left, 0px)); top: calc(env(safe-area-inset-top, 0px) + 24px); bottom: 24px; width: var(--rail);
+  display: none; font-family: var(--font-display); }
+@media (min-width: 1100px) { .rail { display: block; } }
+.rail-read { font-size: .78rem; line-height: 1.35; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.rail-read b { display: block; font-size: 1.15rem; color: var(--ink); font-weight: 700; letter-spacing: -.01em; }
+.rail-col { position: absolute; top: 92px; bottom: 44px; left: 0; width: 14px; border-radius: 8px; overflow: hidden; background: var(--panel-2); }
+.rail-fill { position: absolute; left: 0; right: 0; top: 0; height: var(--railp, 0%);
+  background: linear-gradient(to bottom, var(--tide-2), var(--tide) 60%, var(--lab)); }
+.rail-ticks { position: absolute; top: 92px; bottom: 44px; left: 0; right: 0; }
+.rail-tick { position: absolute; left: 0; right: 0; display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink-soft);
+  font-size: .72rem; transform: translateY(-50%); padding-left: 20px; line-height: 1; }
+.rail-tick::before { content: ""; position: absolute; left: 3px; width: 8px; height: 2px; background: var(--ink-soft); opacity: .5; }
+.rail-tick:hover, .rail-tick.on { color: var(--ink); }
+.rail-tick.done::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--kelp); }
+.rail-tick span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 96px; }
+.rail-marker { position: absolute; left: -4px; width: 22px; height: 22px; margin-top: -11px; top: calc(92px + var(--railpx, 0px));
+  border-radius: 50%; border: 3px solid var(--buoy); background: var(--bg); box-shadow: 0 0 0 4px var(--buoy-soft); }
+.rail-foot { position: absolute; bottom: 0; left: 0; font-size: .75rem; color: var(--ink-soft); }
+.rail-foot b { color: var(--kelp); }
+
+/* ---------- bottom bar (mobile) ---------- */
+.mbar { position: fixed; z-index: 30; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  background: color-mix(in srgb, var(--panel) 92%, transparent); backdrop-filter: blur(10px); border-top: 1px solid var(--line);
+  font-family: var(--font-display); font-size: .85rem; font-variant-numeric: tabular-nums; }
+.mbar .mbar-depth { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.mbar .mini { width: 70px; height: 6px; border-radius: 4px; background: var(--panel-2); overflow: hidden; flex: none; }
+.mbar .mini i { display: block; height: 100%; width: var(--railp, 0%); background: var(--tide); }
+.mbar button { font: inherit; font-weight: 650; border: 0; border-radius: 999px; padding: 8px 14px; background: var(--tide); color: var(--bg); cursor: pointer; }
+@media (min-width: 1100px) { .mbar { display: none; } }
+.sheet { position: fixed; z-index: 40; left: 0; right: 0; bottom: 0; max-height: 75vh; overflow: auto; background: var(--panel); border-radius: 18px 18px 0 0;
+  padding: 18px max(16px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  box-shadow: 0 -10px 40px rgba(0,0,0,.25); font-family: var(--font-display); }
+.sheet a { display: flex; gap: 12px; padding: 10px 4px; text-decoration: none; color: var(--ink); border-bottom: 1px solid var(--line); }
+.sheet a b { color: var(--tide); width: 2.2em; flex: none; }
+.sheet a.done::after { content: "paham"; margin-left: auto; color: var(--kelp); font-size: .8rem; }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.sheet-head button { font: inherit; border: 0; background: var(--panel-2); color: var(--ink); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+@media (max-width: 1099px) { main { padding-bottom: 70px; } }
+
+/* ---------- chapters ---------- */
+.bab { padding-block: 56px 24px; scroll-margin-top: 20px; }
+.bab-head { display: grid; grid-template-columns: auto 1fr; gap: 6px 22px; align-items: end; margin-bottom: 26px; }
+.bab-num { font-family: var(--font-display); font-weight: 800; font-size: clamp(4.2rem, 11vw, 7rem); line-height: .8; letter-spacing: -.05em;
+  font-variation-settings: "wdth" 75; font-variant-numeric: tabular-nums;
+  color: transparent; -webkit-text-stroke: 2px var(--tide);
+  background: linear-gradient(to top, var(--tide) var(--fill, 0%), transparent var(--fill, 0%));
+  -webkit-background-clip: text; background-clip: text; grid-row: span 2; }
+.bab-head > * { min-width: 0; }
+.bab-head h2 { overflow-wrap: break-word; hyphens: auto; font-size: var(--step-3); line-height: 1.05; margin: 0; font-weight: 700; letter-spacing: -.02em; font-variation-settings: "wdth" 88; }
+.bab-meta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; font-family: var(--font-display); font-size: .85rem; color: var(--ink-soft); }
+.got { font: inherit; font-family: var(--font-display); font-size: .82rem; font-weight: 600; border: 1.5px solid var(--line); background: transparent; color: var(--ink-soft);
+  padding: 4px 12px 4px 10px; border-radius: 999px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; transition: all .2s; }
+.got::before { content: ""; width: 10px; height: 10px; border-radius: 50%; border: 1.5px solid currentColor; transition: all .2s; }
+.got[aria-pressed="true"] { border-color: var(--kelp); color: var(--kelp); }
+.got[aria-pressed="true"]::before { background: var(--kelp); transform: scale(1.1); }
+.tag-en { color: var(--buoy); font-weight: 600; }
+h3 { font-size: var(--step-1); margin: 38px 0 10px; font-weight: 650; letter-spacing: -.01em; color: var(--ink); }
+h3 .sub { color: var(--tide); font-variant-numeric: tabular-nums; margin-right: .4em; font-weight: 700; }
+
+/* formula panels */
+.rumus { margin: 18px 0; padding: 14px 18px; border-radius: 14px; background: var(--panel-2);
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 28px; align-items: center; overflow-x: auto; }
+.rumus > div { min-width: 0; }
+.rumus .note { flex-basis: 100%; text-align: center; font-family: var(--font-display); font-size: .82rem; color: var(--ink-soft); }
+.rumus mjx-container[display="true"] { margin: .35em 0 !important; }
+
+/* worked example */
+.contoh { margin: 22px 0; border: 1.5px solid var(--line); border-radius: 16px; background: var(--panel); overflow: hidden; }
+.contoh > header { padding: 12px 18px; font-family: var(--font-display); font-weight: 650; display: flex; gap: 10px; align-items: baseline; border-bottom: 1px solid var(--line); }
+.contoh > header span { color: var(--tide); font-variant-numeric: tabular-nums; }
+.dtj { display: grid; grid-template-columns: 7.5em 1fr; }
+.dtj > dt { padding: 10px 0 10px 18px; font-family: var(--font-display); font-size: .78rem; font-weight: 700; letter-spacing: .06em; color: var(--tide); }
+.dtj > dd { margin: 0; padding: 8px 18px 8px 0; min-width: 0; }
+.dtj > dt:not(:first-of-type), .dtj > dt:not(:first-of-type) + dd { border-top: 1px dashed var(--line); }
+.hasil { display: inline; background: linear-gradient(to top, var(--buoy-soft) 0 45%, transparent 45%); font-weight: 600; padding-inline: 2px; }
+@media (max-width: 560px) { .dtj { grid-template-columns: 1fr; } .dtj > dt { padding: 10px 16px 0; } .dtj > dd { padding: 2px 16px 10px; }
+  .dtj > dt:not(:first-of-type) + dd { border-top: 0; } }
+
+/* trap note */
+.jebak { margin: 20px 0; display: grid; grid-template-columns: 30px 1fr; gap: 12px; background: var(--buoy-soft); border-radius: 14px; padding: 14px 18px; font-size: .97rem; }
+.jebak b { font-family: var(--font-display); }
+.jebak.info { background: var(--panel-2); }
+
+/* tables */
+.tbl-wrap { overflow-x: auto; margin: 18px 0; }
+table { width: 100%; border-collapse: collapse; font-size: .95rem; font-variant-numeric: tabular-nums; }
+th { font-family: var(--font-display); text-align: left; font-weight: 650; font-size: .85rem; color: var(--ink-soft); padding: 8px 10px; border-bottom: 2px solid var(--ink); }
+td { padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+
+/* ---------- lab (simulation) ---------- */
+.lab { margin: 26px 0 30px; border-radius: 20px; background: var(--lab); color: var(--lab-ink); overflow: hidden; }
+.lab-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 14px 20px 0; font-family: var(--font-display); flex-wrap: wrap; }
+.lab-head b { font-weight: 650; font-size: 1.02rem; }
+.lab-head small { color: color-mix(in srgb, var(--lab-ink) 65%, transparent); font-size: .8rem; }
+.lab canvas { display: block; width: 100%; height: 300px; touch-action: pan-y; }
+.lab.tall canvas { height: 360px; }
+.lab-ctrl { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px 22px; padding: 6px 20px 14px; font-family: var(--font-display); }
+.ctl { display: grid; gap: 4px; min-width: 0; }
+.ctl label { display: flex; justify-content: space-between; gap: 8px; font-size: .82rem; color: color-mix(in srgb, var(--lab-ink) 75%, transparent); }
+.ctl label output { color: var(--lab-ink); font-weight: 650; font-variant-numeric: tabular-nums; }
+.ctl select { font: inherit; font-size: .9rem; background: rgba(255,255,255,.06); color: var(--lab-ink); border: 1px solid var(--lab-line); border-radius: 8px; padding: 6px 8px; }
+.ctl select option { background: var(--lab); color: var(--lab-ink); }
+input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; background: transparent; cursor: pointer; }
+input[type=range]::-webkit-slider-runnable-track { height: 4px; border-radius: 4px; background: var(--lab-line); }
+input[type=range]::-moz-range-track { height: 4px; border-radius: 4px; background: var(--lab-line); }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--buoy); margin-top: -7px; border: 3px solid var(--lab); box-shadow: 0 0 0 1px var(--buoy); }
+input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: var(--buoy); border: 3px solid var(--lab); }
+.lab-read { display: flex; flex-wrap: wrap; gap: 6px 26px; padding: 12px 20px 16px; border-top: 1px solid var(--lab-line); font-family: var(--font-display); font-variant-numeric: tabular-nums; font-size: .92rem; }
+.lab-read span { color: color-mix(in srgb, var(--lab-ink) 65%, transparent); }
+.lab-read b { color: var(--lab-ink); font-weight: 650; }
+.lab-read b.hi { color: var(--buoy); }
+
+/* ---------- quiz / practice ---------- */
+.q-list { list-style: none; padding: 0; margin: 18px 0; display: grid; gap: 12px; counter-reset: q; }
+.q-item { border: 1.5px solid var(--line); border-radius: 14px; padding: 14px 16px; background: var(--panel); display: grid; gap: 10px; }
+.q-item p::before { counter-increment: q; content: counter(q) ". "; font-family: var(--font-display); font-weight: 700; color: var(--tide); }
+.q-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-family: var(--font-display); }
+.q-row input { font: inherit; width: 9.5em; padding: 7px 10px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--bg); color: var(--ink); font-variant-numeric: tabular-nums; }
+.q-row .unit { color: var(--ink-soft); font-size: .9rem; }
+.btn { font: inherit; font-family: var(--font-display); font-weight: 650; font-size: .88rem; border: 0; border-radius: 999px; padding: 8px 14px; cursor: pointer; background: var(--tide); color: var(--bg); transition: transform .15s; }
+.btn:active { transform: scale(.96); }
+.btn.ghost { background: transparent; color: var(--tide); border: 1.5px solid var(--line); }
+.verdict { font-size: .88rem; font-weight: 600; }
+.verdict.ok { color: var(--kelp); }
+.verdict.no { color: var(--flare); }
+.q-hint { font-size: .92rem; color: var(--ink-soft); }
+.score { font-family: var(--font-display); display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.score b { font-size: 1.4rem; color: var(--tide); font-variant-numeric: tabular-nums; }
+
+/* guess-the-law game */
+.game { margin: 22px 0; border-radius: 20px; padding: 22px; background: var(--panel); border: 1.5px solid var(--line); }
+.game-clue { font-family: var(--font-display); font-size: var(--step-2); font-weight: 650; line-height: 1.15; margin: 8px 0 18px; letter-spacing: -.01em; min-height: 2.3em; }
+.game-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+.game-opts button { font: inherit; font-family: var(--font-display); text-align: left; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; transition: border-color .2s, background .2s, transform .2s; }
+.game-opts button:hover { border-color: var(--tide); }
+.game-opts button.right { border-color: var(--kelp); background: color-mix(in srgb, var(--kelp) 14%, var(--bg)); }
+.game-opts button.wrong { border-color: var(--flare); background: color-mix(in srgb, var(--flare) 12%, var(--bg)); animation: shake .35s; }
+@keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.game-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; font-family: var(--font-display); font-size: .9rem; color: var(--ink-soft); gap: 12px; flex-wrap: wrap; }
+
+/* mistakes list */
+.salah { list-style: none; padding: 0; margin: 18px 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; counter-reset: s; }
+.salah li { padding: 12px 14px 12px 48px; position: relative; background: var(--panel); border-radius: 12px; font-size: .95rem; line-height: 1.5; }
+.salah li::before { counter-increment: s; content: counter(s); position: absolute; left: 14px; top: 11px; width: 24px; height: 24px; border-radius: 50%;
+  background: var(--buoy); color: #0C2A38; font-family: var(--font-display); font-weight: 700; font-size: .8rem; display: grid; place-items: center; }
+
+/* formula bank */
+.bank-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 18px 0 12px; font-family: var(--font-display); }
+.bank-tools input[type=search] { font: inherit; flex: 1 1 220px; padding: 10px 14px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--panel); color: var(--ink); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { font: inherit; font-family: var(--font-display); font-size: .82rem; padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--line); background: transparent; color: var(--ink-soft); cursor: pointer; }
+.chips button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.switch { display: inline-flex; align-items: center; gap: 8px; font-size: .88rem; cursor: pointer; color: var(--ink-soft); }
+.switch input { accent-color: var(--buoy); width: 18px; height: 18px; }
+.bank { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 8px; }
+.fcard { border-radius: 12px; background: var(--panel); border: 1px solid var(--line); padding: 10px 14px 8px; min-width: 0; text-align: left; font: inherit; color: inherit; width: 100%; }
+.fcard .fname { font-family: var(--font-display); font-size: .82rem; color: var(--ink-soft); display: flex; justify-content: space-between; gap: 8px; }
+.fcard .fname i { font-style: normal; color: var(--tide); font-weight: 700; }
+.fcard .ftex { overflow-x: auto; min-height: 2.4em; display: flex; align-items: center; }
+.bank.flash .fcard { cursor: pointer; }
+.bank.flash .fcard .ftex { filter: blur(9px); opacity: .35; transition: filter .35s, opacity .35s; }
+.bank.flash .fcard.open .ftex { filter: none; opacity: 1; }
+.bank-count { font-family: var(--font-display); font-size: .85rem; color: var(--ink-soft); margin-bottom: 8px; }
+
+/* olympiad */
+.olim { margin: 18px 0; border-radius: 18px; border: 1.5px solid var(--line); background: var(--panel); overflow: hidden; }
+.olim > header { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; padding: 16px 20px; align-items: center; }
+.olim .on { font-family: var(--font-display); font-weight: 800; font-size: 2.2rem; line-height: 1; color: var(--tide); font-variation-settings: "wdth" 75; grid-row: span 2; font-variant-numeric: tabular-nums; }
+.olim h4 { margin: 0; font-size: 1.12rem; font-weight: 650; }
+.olim .topic { font-family: var(--font-display); font-size: .8rem; color: var(--ink-soft); }
+.olim .soal { padding: 0 20px 14px; }
+.steps { list-style: none; margin: 0; padding: 0 20px; display: grid; gap: 0; }
+.steps li { padding: 12px 0 12px 16px; border-left: 2px solid var(--tide); position: relative; animation: drip .5s ease both; min-width: 0; }
+.steps li::before { content: ""; position: absolute; left: -7px; top: 18px; width: 12px; height: 12px; border-radius: 50%; background: var(--tide); }
+.steps li > b:first-child { font-family: var(--font-display); }
+.steps li[hidden] { display: none; }
+@keyframes drip { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+.olim-ctl { display: flex; gap: 8px; flex-wrap: wrap; padding: 14px 20px 18px; align-items: center; font-family: var(--font-display); font-size: .85rem; color: var(--ink-soft); }
+.olim .jebak { margin: 4px 20px 18px; }
+
+.dtj-card { margin: 18px 0; background: var(--panel); border-radius: 16px; padding: 6px 0; }
+.ref { font-size: .95rem; }
+.ref li + li { margin-top: 6px; }
+footer.end { padding-block: 70px 120px; text-align: center; font-family: var(--font-display); }
+footer.end .big { font-size: var(--step-3); font-weight: 750; letter-spacing: -.02em; font-variation-settings: "wdth" 85; }
+footer.end p { color: var(--ink-soft); margin-top: 8px; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .steps li, .game-opts button.wrong { animation: none; }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-buoy" viewBox="0 0 30 30"><path d="M15 3 L22 19 H8 Z" fill="var(--buoy)"/><rect x="9" y="12" width="12" height="3" fill="var(--bg)" opacity=".7"/><path d="M3 23 q3 -3 6 0 t6 0 t6 0 t6 0" fill="none" stroke="var(--tide)" stroke-width="2.2" stroke-linecap="round"/></symbol>
+  <symbol id="i-drop" viewBox="0 0 30 30"><path d="M15 3 C15 3 6 14 6 19 a9 9 0 0 0 18 0 C24 14 15 3 15 3Z" fill="var(--tide)"/><path d="M11 19 a4 4 0 0 0 4 4" stroke="var(--bg)" stroke-width="2" fill="none" stroke-linecap="round"/></symbol>
+</svg>
+
+<nav class="rail" aria-label="Kedalaman dan daftar bab">
+  <div class="rail-read">kedalaman<b id="rDepth">0,0 m</b>tekanan absolut<b id="rP">101 kPa</b></div>
+  <div class="rail-col"><div class="rail-fill"></div></div>
+  <div class="rail-ticks" id="railTicks"></div>
+  <div class="rail-marker" aria-hidden="true"></div>
+  <div class="rail-foot"><b id="rDone">0</b> dari 17 bab paham</div>
+</nav>
+
+<div class="mbar" role="region" aria-label="Kedalaman baca">
+  <div class="mbar-depth"><span class="mini"><i></i></span><span id="mDepth">0,0 m, P = 101 kPa</span></div>
+  <button type="button" id="openSheet" aria-expanded="false" aria-controls="sheet">Daftar bab</button>
+</div>
+<div class="sheet" id="sheet" hidden>
+  <div class="sheet-head"><b>Daftar bab</b><button type="button" id="closeSheet">Tutup</button></div>
+  <div id="sheetList"></div>
+</div>
+
+<main class="shell" lang="id">
+<header class="hero wide">
+  <div class="hero-top"><span><b>FI1101</b> Fisika Dasar I</span><span>Made by <b>rasyiiq</b>, edisi 12 November 2026</span></div>
+  <div class="hero-stage">
+    <h1>Master Modul Fluida</h1>
+    <canvas id="heroCanvas" aria-label="Kata FLUIDA setengah tenggelam di permukaan air yang bergelombang. Gerakkan kursor untuk membuat riak." role="img"></canvas>
+  </div>
+  <div class="hero-sub">
+    <div>
+      <p class="lead">Isi lengkap modul 36 halaman, dari massa jenis sampai Poiseuille, dalam bentuk yang bisa <strong>kamu geser, coba, dan uji</strong>. Ada 13 simulasi, 14 contoh, 10 latihan yang dikoreksi otomatis, dan 10 soal olimpiade yang langkah pembahasannya dibuka satu per satu.</p>
+      <p class="hero-hint">Makin jauh kamu menggulir, makin dalam airnya. Pengukur di kiri menghitung \(P = P_0 + \rho g h\) untuk posisi bacamu.</p>
+      <div class="scope">
+        <svg width="28" height="28" aria-hidden="true"><use href="#i-buoy"/></svg>
+        <div><b class="ui">Batas cakupan.</b> Paket olimpiade, metacenter, pusat tekanan, permukaan lengkung, rotasi fluida, dan rugi tekanan pipa adalah pengayaan, bukan jaminan pasti diujikan. Pakai \(g = 9{,}8\ \text{m/s}^2\) di contoh umum dan \(g = 10\ \text{m/s}^2\) di paket olimpiade, kecuali soal menyebut lain.</div>
+      </div>
+    </div>
+    <div>
+      <div class="route-title">Rute belajar yang dianjurkan</div>
+      <ol class="route">
+        <li><a href="#bab-1"><span class="r-bab">Bab 1–4</span><span class="r-txt">Fondasi dan fluida statis<small>notasi, massa jenis, tekanan, Pascal, manometer</small></span></a></li>
+        <li><a href="#bab-5"><span class="r-bab">Bab 5–6</span><span class="r-txt">Pengayaan hidrostatika<small>gaya pada bidang, Archimedes, kestabilan</small></span></a></li>
+        <li><a href="#bab-7"><span class="r-bab">Bab 7–9</span><span class="r-txt">Fluida bergerak dan viskositas<small>wadah dipercepat, kapilaritas, Bernoulli</small></span></a></li>
+        <li><a href="#bab-10"><span class="r-bab">Bab 10</span><span class="r-txt">Pemantapan rumus<small>Torricelli, venturi, Pitot, pancaran</small></span></a></li>
+        <li><a href="#bab-11"><span class="r-bab">Bab 11–16</span><span class="r-txt">Fluida nyata lalu olimpiade<small>Stokes, Reynolds, Poiseuille, latihan, paket 10 soal</small></span></a></li>
+      </ol>
+      <p class="hero-hint">Setiap kali mengerjakan soal, pakai format DIKETAHUI, DITANYA, JAWAB.</p>
+    </div>
+  </div>
+</header>
+
+<!-- ================= BAB 1 ================= -->
+<section class="bab col" id="bab-1" data-title="Notasi dan satuan">
+  <div class="bab-head"><div class="bab-num" aria-hidden="true">1</div>
+    <h2>Notasi, satuan, dan konversi</h2>
+    <div class="bab-meta"><button class="got" type="button" data-bab="1" aria-pressed="false">Sudah paham</button></div></div>
+  <div class="prose">
+    <p>Supaya simbol tidak tertukar: \(\rho\) untuk massa jenis, \(\gamma\) untuk berat jenis, \(\mu\) untuk viskositas dinamis, \(\nu\) untuk viskositas kinematis, \(\sigma\) untuk tegangan permukaan, dan \(B\) untuk modulus bulk. Huruf \(W\) bisa berarti <em>berat</em> di soal statika atau <em>usaha</em> di bab energi; artinya selalu dijelaskan di soal.</p>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Besaran</th><th>Simbol</th><th>Satuan SI</th></tr></thead>
+    <tbody>
+      <tr><td>Massa, volume, luas</td><td>\(m, V, A\)</td><td>kg, m³, m²</td></tr>
+      <tr><td>Massa jenis</td><td>\(\rho\)</td><td>kg/m³</td></tr>
+      <tr><td>Berat jenis</td><td>\(\gamma\)</td><td>N/m³</td></tr>
+      <tr><td>Tekanan</td><td>\(P\)</td><td>Pa = N/m²</td></tr>
+      <tr><td>Kecepatan, percepatan</td><td>\(v, a\)</td><td>m/s, m/s²</td></tr>
+      <tr><td>Debit volume dan massa</td><td>\(Q, \dot m\)</td><td>m³/s, kg/s</td></tr>
+      <tr><td>Viskositas dinamis, kinematis</td><td>\(\mu, \nu\)</td><td>Pa·s, m²/s</td></tr>
+      <tr><td>Tegangan permukaan</td><td>\(\sigma\)</td><td>N/m = J/m²</td></tr>
+      <tr><td>Modulus bulk</td><td>\(B\)</td><td>Pa</td></tr>
+      <tr><td>Bilangan Reynolds</td><td>\(Re\)</td><td>tidak berdimensi</td></tr>
+    </tbody></table></div>
+  <div class="rumus">
+    <div>\(1\ \text{cm} = 10^{-2}\ \text{m}\)</div><div>\(1\ \text{cm}^2 = 10^{-4}\ \text{m}^2\)</div><div>\(1\ \text{cm}^3 = 10^{-6}\ \text{m}^3\)</div>
+    <div>\(1\ \text{L} = 10^{-3}\ \text{m}^3\)</div><div>\(1\ \text{kPa} = 10^{3}\ \text{Pa}\)</div><div>\(1\ \text{MPa} = 10^{6}\ \text{Pa}\)</div>
+    <div>\(1\ \text{bar} = 10^{5}\ \text{Pa}\)</div><div>\(1\ \text{atm} = 101325\ \text{Pa}\)</div><div>\(1\ \text{atm} = 760\ \text{mmHg}\)</div>
+  </div>
+  <p>Massa jenis pendekatan (kg/m³): air 1000, es 920, minyak 800, air laut 1025, aluminium 2700, besi 7870, raksa 13600, udara 1,2. Massa jenis bergantung pada suhu, tekanan, dan komposisi.</p>
+</section>
+
+<!-- ================= BAB 2 ================= -->
+<section class="bab col" id="bab-2" data-title="Dasar fluida">
+  <div class="bab-head"><div class="bab-num" aria-hidden="true">2</div>
+    <h2>Dasar fluida: sifat zat, massa jenis, dan modulus bulk</h2>
+    <div class="bab-meta"><button class="got" type="button" data-bab="2" aria-pressed="false">Sudah paham</button></div></div>
+  <h3><span class="sub">2.1</span>Zat cair, gas, dan model fluida ideal</h3>
+  <p><b>Fluida</b> ialah zat yang terus berubah bentuk bila dikenai tegangan geser. Cairan punya volume yang relatif tetap dan permukaan bebas bila tidak memenuhi wadah; gas mudah dimampatkan dan mengisi seluruh ruang. Dalam soal dasar, <em>fluida ideal</em> mengabaikan viskositas. <em>Tunak</em> berarti kondisi aliran di satu lokasi tidak berubah terhadap waktu, dan <em>tak termampatkan</em> berarti massa jenisnya (hampir) konstan. Keduanya bukan sinonim “ideal”.</p>
+  <h3><span class="sub">2.2</span>Massa jenis, berat jenis, dan volume spesifik</h3>
+  <div class="rumus">
+    <div>\[\rho = \frac{m}{V}\]</div><div>\[m = \rho V\]</div><div>\[V = \frac{m}{\rho}\]</div>
+    <div>\[\gamma = \frac{mg}{V} = \rho g\]</div><div>\[v_s = \frac{V}{m} = \frac{1}{\rho}\]</div><div>\[SG = \frac{\rho_\text{zat}}{\rho_\text{ref}}\]</div>
+  </div>
+  <p>Massa jenis mengukur massa per volume; berat jenis mengukur gaya berat per volume. <em>Specific gravity</em> adalah perbandingan massa jenis terhadap acuan (biasanya air untuk zat cair) dan tidak bersatuan.</p>
+  <article class="contoh"><header><span>Contoh 1</span>Menentukan massa jenis dan berat jenis</header>
+    <dl class="dtj"><dt>DIKETAHUI</dt><dd>\(m = 6\ \text{kg},\ V = 0{,}003\ \text{m}^3,\ g = 9{,}8\ \text{m/s}^2\)</dd>
+    <dt>DITANYA</dt><dd>\(\rho\) dan \(\gamma\)</dd>
+    <dt>JAWAB</dt><dd>\(\rho = \dfrac{6}{0{,}003} = 2000\ \text{kg/m}^3\), lalu \(\gamma = \rho g = 2000(9{,}8) = 19600\ \text{N/m}^3\).<br><span class="hasil">\(\rho = 2000\ \text{kg/m}^3,\ \gamma = 19600\ \text{N/m}^3\)</span></dd></dl></article>
+  <h3><span class="sub">2.3</span>Modulus bulk, kompresibilitas, dan laju bunyi</h3>
+  <p>Kenaikan tekanan \(\Delta P > 0\) biasanya menurunkan volume (\(\Delta V \lt 0\)). Modulus bulk menyatakan kekakuan volumetrik: makin besar \(B\), makin sulit dimampatkan.</p>
+  <div class="rumus">
+    <div>\[B = -V\frac{dP}{dV}\]</div><div>\[B \approx -\frac{\Delta P}{\Delta V / V}\]</div><div>\[\beta = \frac{1}{B}\]</div>
+    <div>\[\Delta V \approx -\frac{V\,\Delta P}{B}\]</div><div>\[\frac{\Delta\rho}{\rho} \approx \frac{\Delta P}{B}\]</div>
+    <div>\[c = \sqrt{\frac{B_s}{\rho}}\]</div><div>\[B_s = \rho c^2\]</div>
+  </div>
+  <p>\(B_s\) adalah modulus bulk untuk kompresi adiabatik cepat, misalnya perambatan bunyi. Untuk gas ideal, \(c = \sqrt{\kappa P/\rho} = \sqrt{\kappa R_s T}\) dengan \(\kappa = C_p/C_v\). Cek satuan: \([\rho][c]^2 = \text{kg/(m s}^2) = \text{Pa}\).</p>
+  <article class="contoh"><header><span>Contoh 2</span>Perubahan volume fluida</header>
+    <dl class="dtj"><dt>DIKETAHUI</dt><dd>\(V = 0{,}50\ \text{m}^3,\ \Delta P = 2\times10^6\ \text{Pa},\ B = 10^9\ \text{Pa}\)</dd>
+    <dt>DITANYA</dt><dd>\(\Delta V\)</dd>
+    <dt>JAWAB</dt><dd>\(\Delta V = -\dfrac{V\Delta P}{B} = -\dfrac{0{,}50(2\times10^6)}{10^9} = -0{,}001\ \text{m}^3\).<br><span class="hasil">Volume berkurang \(0{,}001\ \text{m}^3\)</span> (tanda negatif artinya mengecil).</dd></dl></article>
+</section>
+
+<!-- ================= BAB 3 ================= -->
+<section class="bab col" id="bab-3" data-title="Hidrostatika">
+  <div class="bab-head"><div class="bab-num" aria-hidden="true">3</div>
+    <h2>Tekanan dan persamaan dasar hidrostatika</h2>
+    <div class="bab-meta"><button class="got" type="button" data-bab="3" aria-pressed="false">Sudah paham</button></div></div>
+  <h3><span class="sub">3.1</span>Tekanan absolut, gauge, dan vakum</h3>
+  <p>Tekanan ialah gaya <em>normal</em> per luas. Jika gaya membentuk sudut \(\theta\) terhadap normal bidang, yang menekan hanya komponen \(F\cos\theta\).</p>
+  <div class="rumus">
+    <div>\[P = \frac{F_\perp}{A}\]</div><div>\[F_\perp = PA\]</div><div>\[P = \frac{F\cos\theta}{A}\]</div>
+    <div>\[P_\text{abs} = P_\text{atm} + P_g\]</div><div>\[P_\text{vac} = P_\text{atm} - P_\text{abs}\]</div>
+  </div>
+  <p>\(P_g\) bisa negatif bila tekanan di bawah atmosfer; \(P_\text{vac}\) menyatakan besar kekosongan relatif terhadap atmosfer. Atmosfer standar 101325 Pa, tetapi nilai lokal bisa berbeda. Soal yang membandingkan kolom cairan biasanya cukup memakai tekanan gauge bila kedua permukaan terbuka ke atmosfer.</p>
+  <h3><span class="sub">3.2</span>Mengapa tekanan bertambah dengan kedalaman?</h3>
+  <p>Ambil kolom cairan luas \(A\), tinggi \(h\). Volumenya \(Ah\), massanya \(\rho Ah\), beratnya \(\rho Ahg\). Selisih gaya tekan atas dan bawah harus menahan berat itu, jadi:</p>
+  <div class="rumus">
+    <div>\[P_h = \rho g h\]</div><div>\[P_\text{abs} = P_0 + \rho g h\]</div><div>\[h = \frac{P_h}{\rho g}\]</div>
+    <div>\[\frac{dP}{dz} = -\rho g\]</div><div>\[P_2 - P_1 = \rho g (z_1 - z_2)\]</div>
+  </div>
+  <p>Tanda minus muncul karena \(z\) positif ke atas. Pada fluida diam, tekanan di satu titik bersifat <em>isotropik</em> (sama ke segala arah), tetapi gaya pada dinding selalu tegak lurus dinding.</p>
+
+  <div class="lab" data-sim="hydro">
+    <div class="lab-head"><b>Lab tekanan hidrostatis</b><small>geser sensor ke bawah dan ganti fluidanya</small></div>
+    <canvas id="c-hydro"></canvas>
+    <div class="lab-ctrl">
+      <div class="ctl"><label for="hy-h">Kedalaman sensor \(h\) <output id="o-hy-h"></output></label><input type="range" id="hy-h" min="0" max="10" step="0.1" value="4"></div>
+      <div class="ctl"><label for="hy-f">Fluida</label><select id="hy-f"><option value="1000">Air (1000 kg/m³)</option><option value="800">Minyak (800 kg/m³)</option><option value="1025">Air laut (1025 kg/m³)</option><option value="13600">Raksa (13600 kg/m³)</option></select></div>
+    </div>
+    <div class="lab-read"><div><span>\(P_g = \rho g h\)</span> <b class="hi" id="r-hy-pg"></b></div><div><span>\(P_\text{abs}\)</span> <b id="r-hy-pa"></b></div><div><span>dalam atm</span> <b id="r-hy-atm"></b></div></div>
+  </div>
+
+  <h3><span class="sub">3.3</span>Massa jenis berubah dan fluida berlapis</h3>
+  <p>Kalau \(\rho\) berubah terhadap kedalaman, jangan menyisipkan \(\rho(h)\) langsung ke \(\rho g h\). Integralkan:</p>
+  <div class="rumus"><div>\[P(h) = P_0 + g\int_0^h \rho(s)\,ds\]</div><div>\[P_\text{dasar} = P_0 + g\sum_{i=1}^{n}\rho_i h_i\]</div></div>
+  <p>Contoh: minyak \(\rho_m = 800\ \text{kg/m}^3\) setinggi 0,2 m di atas air setinggi 0,5 m. Tekanan gauge dasar: \(P_g = (800)(9{,}8)(0{,}2) + (1000)(9{,}8)(0{,}5) = \) <span class="hasil">6468 Pa</span>.</p>
+  <h3><span class="sub">3.4</span>Bejana berhubungan dan paradoks hidrostatik</h3>
+  <p>Dalam fluida <em>yang sama dan saling terhubung</em>, titik pada ketinggian sama bertekanan sama. Untuk dua kolom cairan tak bercampur dengan tekanan permukaan sama:</p>
+  <div class="rumus"><div>\[\rho_1 g h_1 = \rho_2 g h_2 \;\Rightarrow\; \frac{h_1}{h_2} = \frac{\rho_2}{\rho_1}\]</div></div>
+  <p>Bentuk wadah tidak mengubah tekanan pada kedalaman tertentu. Tetapi gaya total pada dasar bisa berbeda karena luas alasnya berbeda. Inilah <em>paradoks hidrostatik</em>.</p>
+  <article class="contoh"><header><span>Contoh 3</span>Tekanan absolut penyelam</header>
+    <dl class="dtj"><dt>DIKETAHUI</dt><dd>\(h = 10\ \text{m},\ \rho = 1000\ \text{kg/m}^3,\ g = 9{,}8,\ P_\text{atm} = 101325\ \text{Pa}\)</dd>
+    <dt>DITANYA</dt><dd>Tekanan gauge dan absolut</dd>
+    <dt>JAWAB</dt><dd>\(P_g = \rho g h = 98000\ \text{Pa}\); \(P_\text{abs} = 101325 + 98000 = \) <span class="hasil">199325 Pa</span>. Coba di lab atas: geser sensor ke 10 m.</dd></dl></article>
+</section>
+
+<!-- ================= BAB 4 ================= -->
+<section class="bab col" id="bab-4" data-title="Pascal dan manometer">
+  <div class="bab-head"><div class="bab-num" aria-hidden="true">4</div>
+    <h2>Pascal, sistem hidrolik, manometer, dan barometer</h2>
+    <div class="bab-meta"><button class="got" type="button" data-bab="4" aria-pressed="false">Sudah paham</button></div></div>
+  <h3><span class="sub">4.1</span>Hukum Pascal dan penguatan gaya</h3>
+  <p>Dalam fluida tertutup, <em>perubahan</em> tekanan diteruskan tanpa berkurang. Kalau kedua piston setinggi, tambahan tekanannya sama:</p>
+  <div class="rumus">
+    <div>\[\frac{F_1}{A_1} = \frac{F_2}{A_2}\]</div><div>\[F_2 = F_1\frac{A_2}{A_1}\]</div><div>\[\frac{F_2}{F_1} = \frac{r_2^2}{r_1^2} = \frac{D_2^2}{D_1^2}\]</div>
+    <div>\[A_1\Delta x_1 = A_2\Delta x_2\]</div><div>\[F_1\Delta x_1 = F_2\Delta x_2\]</div><div>\[\eta_m = \frac{W_\text{out}}{W_\text{in}}\]</div>
+  </div>
+  <p>Gaya keluar bisa lebih besar, tetapi jarak geraknya lebih kecil. Hidrolik <em>tidak menciptakan energi</em>. Kalau piston berbeda tinggi, tambahkan tekanan hidrostatisnya.</p>
+
+  <div class="lab" data-sim="jack">
+    <div class="lab-head"><b>Lab dongkrak hidrolik</b><small>piston kiri dipompa naik turun; volume yang terdorong sama</small></div>
+    <canvas id="c-jack"></canvas>
+    <div class="lab-ctrl">
+      <div class="ctl"><label for="jk-f1">Gaya masuk \(F_1\) <output id="o-jk-f1"></output></label><input type="range" id="jk-f1" min="10" max="200" step="5" value="50"></div>
+      <div class="ctl"><label for="jk-a1">Luas piston kecil \(A_1\) <output id="o-jk-a1"></output></label><input type="range" id="jk-a1" min="1" max="20" step="1" value="5"></div>
+      <div class="ctl"><label for="jk-a2">Luas piston besar \(A_2\) <output id="o-jk-a2"></output></label><input type="range" id="jk-a2" min="20" max="400" step="5" value="100"></div>
+    </div>
+    <div class="lab-read"><div><span>\(F_2\)</span> <b class="hi" id="r-jk-f2"></b></div><div><span>penguatan</span> <b id="r-jk-k"></b></div><div><span>bila \(\Delta x_1 = 10\) cm, \(\Delta x_2\)</span> <b id="r-jk-x"></b></div></div>
+  </div>
+
+  <article class="contoh"><header><span>Contoh 4</span>Dongkrak hidrolik</header>
+    <dl class="dtj"><dt>DIKETAHUI</dt><dd>\(A_1 = 5\ \text{cm}^2,\ A_2 = 100\ \text{cm}^2,\ F_1 = 50\ \text{N}\)</dd>
+    <dt>DITANYA</dt><dd>\(F_2\)</dd>
+    <dt>JAWAB</dt><dd>\(F_2 = F_1(A_2/A_1) = 50(100/5) = \) <span class="hasil">1000 N</span>. Perbandingan luas boleh langsung dalam cm² karena satuannya sama dan saling coret.</dd></dl></article>
+
+  <h3><span class="sub">4.2</span>Manometer: berjalan naik dan turun</h3>
+  <p>Tabung U mengubah beda tekanan menjadi beda tinggi cairan. Aturan <b>lintasan tekanan</b>:</p>
+  <ul>
+    <li>Turun sejauh \(h\) dalam cairan: \(P_\text{baru} = P_\text{lama} + \rho g h\).</li>
+    <li>Naik sejauh \(h\) dalam cairan: \(P_\text{baru} = P_\text{lama} - \rho g h\).</li>
+    <li>Di bidang batas dua cairan diam, tekanan bersambung.</li>
+    <li>Dalam satu fluida terhubung dan setinggi sama, tekanannya sama.</li>
+  </ul>
+  <div class="rumus">
+    <div>\[\Delta P = \rho_m g h\]</div><div>\[P_\text{gas} = P_\text{atm} \pm \rho_m g h\]</div><div>\[P_A - P_B = (\rho_m - \rho_f) g h\]</div>
+    <div class="note">rumus ketiga hanya untuk manometer diferensial dengan dua tap setinggi dan fluida proses yang sama</div>
+  </div>
+
+  <div class="lab" data-sim="mano">
+    <div class="lab-head"><b>Lab manometer terbuka</b><small>naikkan tekanan gas, lihat beda tinggi kolom</small></div>
+    <canvas id="c-mano"></canvas>
+    <div class="lab-ctrl">
+      <div class="ctl"><label for="mn-dp">Tekanan gauge gas \(P_\text{gas} - P_\text{atm}\) <output id="o-mn-dp"></output></label><input type="range" id="mn-dp" min="-20" max="40" step="0.5" value="16"></div>
+      <div class="ctl"><label for="mn-f">Cairan manometer</label><select id="mn-f"><option value="13600">Raksa (13600)</option><option value="1000">Air (1000)</option><option value="800">Minyak (800)</option></select></div>
+    </div>
+    <div class="lab-read"><div><span>beda tinggi \(h = \Delta P/(\rho_m g)\)</span> <b class="hi" id="r-mn-h"></b></div><div><span>sisi lebih tinggi</span> <b id="r-mn-side"></b></div></div>
+  </div>
+
+  <h3><span class="sub">4.3</span>Piezometer, manometer miring, dan barometer</h3>
+  <div class="rumus"><div>\[h_\text{piezo} = \frac{P_g}{\rho g}\]</div><div>\[\Delta P = \rho_m g L\sin\theta\]</div><div>\[P_\text{atm} = P_\text{uap} + \rho_\text{Hg} g h\]</div></div>
+  <p>Manometer miring memperpanjang pergeseran permukaan supaya selisih tekanan kecil terbaca. Barometer raksa mengukur tekanan atmosfer dari tinggi raksa; tekanan uapnya sering diabaikan dalam pendekatan sederhana.</p>
+  <article class="contoh"><header><span>Contoh 5</span>Manometer raksa terbuka</header>
+    <dl class="dtj"><dt>DIKETAHUI</dt><dd>\(\rho_\text{Hg} = 13600\ \text{kg/m}^3\), beda tinggi \(h = 0{,}12\ \text{m}\), \(g = 9{,}8\). Gas bertekanan lebih tinggi daripada atmosfer.</dd>
+    <dt>DITANYA</dt><dd>Beda tekanan</dd>
+    <dt>JAWAB</dt><dd>\(P_\text{gas} - P_\text{atm} = \rho_\text{Hg} g h = 13600(9{,}8)(0{,}12) = \) <span class="hasil">15993,6 Pa</span>. Di lab atas, set sekitar 16 kPa dengan raksa: kolomnya kira-kira 12 cm.</dd></dl></article>
+  <div class="jebak"><svg width="30" height="30" aria-hidden="true"><use href="#i-buoy"/></svg><div><b>Jebakan manometer.</b> \(P_A = P_B\) pada kedalaman sama tidak boleh dipakai langsung melintasi cairan berbeda yang ada di wadah berbeda. Telusuri tekanan dari titik A ke titik B lewat kolom-kolom cairan yang benar.</div></div>
+</section>
+
+<!-- ================= BAB 5 ================= -->
+<section class="bab col" id="bab-5" data-title="Bidang terendam">
+  <div class="bab-head"><div class="bab-num" aria-hidden="true">5</div>
+    <h2>Gaya hidrostatik pada bidang terendam dan pusat tekanan</h2>
+    <div class="bab-meta"><span class="tag-en">pengayaan</span><button class="got" type="button" data-bab="5" aria-pressed="false">Sudah paham</button></div></div>
+  <h3><span class="sub">5.1</span>Distribusi gaya pada suatu bidang</h3>
+  <p>Tekanan pada kedalaman \(h\) ialah \(\rho g h\), tetapi pada dinding atau gerbang, kedalaman berubah sepanjang bidang. Pada elemen luas \(dA\) bekerja \(dF = P\,dA\); integralnya memberi gaya resultan.</p>
+  <div class="rumus">
+    <div>\[dF = P\,dA\]</div><div>\[F_R = \int_A P\,dA = \rho g h_c A\]</div><div>\[F_R = (P_0 + \rho g h_c)A\]</div>
+    <div class="note">kiri: tekanan gauge, bidang datar. Kanan: tekanan absolut di satu sisi</div>
+  </div>
+  <p>\(h_c\) adalah kedalaman vertikal <em>centroid</em> (pusat geometris) luas yang terendam. Untuk gaya bersih pada dinding yang sisi luarnya terkena atmosfer, tekanan atmosfer di kedua sisi saling meniadakan.</p>
+  <h3><span class="sub">5.2</span>Persegi panjang dan bidang miring</h3>
+  <p>Pelat vertikal lebar \(b\), tinggi \(H\), tepi atas tepat di permukaan: \(A = bH\) dan \(h_c = H/2\).</p>
+  <div class="rumus"><div>\[F_R = \tfrac12 \rho g b H^2\]</div><div>\[h_c = y_c\sin\alpha\]</div><div>\[F_R = \rho g A y_c \sin\alpha\]</div></div>
+  <h3><span class="sub">5.3</span>Pusat tekanan: kenapa lebih rendah dari centroid?</h3>
+  <p>Pusat tekanan adalah titik kerja resultan. Bagian bawah menerima tekanan lebih besar, jadi pusat tekanan pada bidang vertikal selalu di bawah centroid.</p>
+  <div class="rumus">
+    <div>\[y_{cp} = y_c + \frac{I_G}{A y_c}\]</div><div>\[h_{cp} = h_c + \frac{I_G\sin^2\alpha}{A h_c}\]</div><div>\[h_{cp} = \frac{2H}{3}\]</div>
+    <div class="note">rumus ketiga: pelat vertikal yang mulai dari permukaan</div>
+  </div>
+  <p>Jarak \(y\) diukur sepanjang bidang dari garis potong bidang dengan permukaan bebas. \(I_G\) adalah momen kedua luas terhadap sumbu centroid yang sejajar permukaan. Untuk pelat vertikal dengan tepi atas di kedalaman \(h_0\):</p>
+  <div class="rumus"><div>\[F_R = \rho g b H\left(h_0 + \frac{H}{2}\right)\]</div><div>\[y_{cp} = \frac{h_0H^2/2 + H^3/3}{h_0 H + H^2/2},\quad h_{cp} = h_0 + y_{cp}\]</div></div>
+
+  <div class="lab tall" data-sim="gate">
+    <div class="lab-head"><b>Lab pintu air</b><small>panah = tekanan lokal. Lingkaran = centroid, belah ketupat kuning = pusat tekanan</small></div>
+    <canvas id="c-gate"></canvas>
+    <div class="lab-ctrl">
+      <div class="ctl"><label for="gt-h0">Kedalaman tepi atas \(h_0\) <output id="o-gt-h0"></output></label><input type="range" id="gt-h0" min="0" max="3" step="0.1" value="1"></div>
+      <div class="ctl"><label for="gt-H">Tinggi pelat \(H\) <output id="o-gt-H"></output></label><input type="range" id="gt-H" min="0.5" max="4" step="0.1" value="3"></div>
+      <div class="ctl"><label for="gt-b">Lebar pelat \(b\) <output id="o-gt-b"></output></label><input type="range" id="gt-b" min="0.5" max="4" step="0.1" value="2"></div>
+    </div>
+    <div class="lab-read"><div><span>\(F_R\)</span> <b class="hi" id="r-gt-f"></b></div><div><span>\(h_c\)</span> <b id="r-gt-hc"></b></div><div><span>\(h_{cp}\)</span> <b id="r-gt-hcp"></b></div><div><span>jarak dari dasar pelat</span> <b id="r-gt-d"></b></div></div>
+  </div>
+
+  <h3><span class="sub">5.4</span>Momen gaya dan momen kedua luas</h3>
+  <div class="rumus"><div>\[M_O = \int_A rP\,dA\]</div><div>\[d_{cp} = \frac{M_O}{F_R}\]</div><div>\[I_O = I_G + Ad^2\]</div></div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Bentuk bidang (sumbu)</th><th>Momen kedua luas</th></tr></thead>
+    <tbody>
+      <tr><td>Persegi panjang, sumbu centroid sejajar lebar</td><td>\(I_x = bH^3/12\)</td></tr>
+      <tr><td>Persegi panjang, sumbu centroid sejajar tinggi</td><td>\(I_y = Hb^3/12\)</td></tr>
+      <tr><td>Persegi panjang, sumbu tepi sejajar lebar</td><td>\(I = bH^3/3\)</td></tr>
+      <tr><td>Segitiga, sumbu centroid sejajar alas</td><td>\(I_G = bH^3/36\)</td></tr>
+      <tr><td>Segitiga, terhadap alas</td><td>\(I = bH^3/12\)</td></tr>
+      <tr><td>Lingkaran, diameter centroid</td><td>\(I = \pi r^4/4 = \pi D^4/64\)</td></tr>
+      <tr><td>Elips, semisumbu \(a, b\)</td><td>\(I_x = \pi ab^3/4,\ I_y = \pi a^3 b/4\)</td></tr>
+      <tr><td>Setengah lingkaran, sumbu diameter</td><td>\(I = \pi r^4/8\)</td></tr>
+      <tr><td>Setengah lingkaran, sumbu centroid sejajar diameter</td><td>\(I_G = r^4(\pi/8 - 8/(9\pi))\)</td></tr>
+    </tbody></table></div>
+  <p>Rumus umumnya \(I_x = \int_A y^2\,dA\), \(I_y = \int_A x^2\,dA\), produk inersia \(I_{xy} = \int_A xy\,dA\), dan momen polar \(J_O = I_x + I_y\). Ini <em>momen kedua luas</em>, bukan momen inersia massa.</p>
+  <article class="contoh"><header><span>Contoh 6</span>Pintu air berbentuk persegi panjang</header>
+    <dl class="dtj"><dt>DIKETAHUI</dt><dd>Pelat vertikal \(b = 2\ \text{m},\ H = 3\ \text{m}\), tepi atas di \(h_0 = 1\ \text{m}\), \(\rho = 1000,\ g = 9{,}8\)</dd>
+    <dt>DITANYA</dt><dd>Gaya total dan kedalaman pusat tekanan</dd>
+    <dt>JAWAB</dt><dd>\(A = 6\ \text{m}^2,\ h_c = 1 + 1{,}5 = 2{,}5\ \text{m}\), jadi \(F_R = 1000(9{,}8)(2{,}5)(6) = 147000\ \text{N}\).<br>\(I_G = \dfrac{2(3)^3}{12} = 4{,}5\ \text{m}^4\), \(h_{cp} = 2{,}5 + \dfrac{4{,}5}{6(2{,}5)} = 2{,}8\ \text{m}\).<br>Dasar pelat di 4 m, jadi pusat tekanan <span class="hasil">1,2 m dari dasar</span>. Nilai bawaan lab di atas sama dengan contoh ini.</dd></dl></article>
+  <h3><span class="sub">5.5</span>Permukaan lengkung</h3>
+  <p>Hitung komponennya terpisah. Komponen horizontal adalah gaya pada proyeksi vertikal; komponen vertikal sama dengan berat volume fluida imajiner yang ditopang atau menekan permukaan itu.</p>
+  <div class="rumus"><div>\[F_H = \rho g h_c A_v\]</div><div>\[|F_V| = \rho g V_\text{imajiner}\]</div><div>\[F_R = \sqrt{F_H^2 + F_V^2}\]</div><div>\[\tan\alpha = \frac{|F_V|}{|F_H|}\]</div></div>
+  <p>Arah \(F_V\) ditentukan oleh sisi yang bersentuhan dengan fluida. Kalau ada tekanan tambahan \(P_0\), hitung pengaruhnya juga. \(F_H\) bekerja di pusat tekanan proyeksi vertikal; \(F_V\) lewat centroid volume fluida imajiner.</p>
+</section>
+
+<!-- ================= BAB 6 ================= -->
+<section class="bab col" id="bab-6" data-title="Archimedes">
+  <div class="bab-head"><div class="bab-num" aria-hidden="true">6</div>
+    <h2>Archimedes, berat semu, dan kestabilan benda terapung</h2>
+    <div class="bab-meta"><button class="got" type="button" data-bab="6" aria-pressed="false">Sudah paham</button></div></div>
+  <h3><span class="sub">6.1</span>Dari selisih tekanan menjadi gaya apung</h3>
+  <p>Balok setinggi \(H\) yang tercelup penuh menerima tekanan lebih besar di bawah daripada di atas. Dengan luas alas \(A\): \(F_A = (P_\text{bawah} - P_\text{atas})A = \rho_f g H A = \rho_f g V\). Prinsip Archimedes: gaya apung sama dengan <em>berat fluida yang dipindahkan</em>, berlaku untuk bentuk apa pun.</p>
+  <div class="rumus"><div>\[F_A = \rho_f g V_\text{terdesak}\]</div><div>\[F_A = \gamma_f V_\text{terdesak}\]</div><div>\[V_\text{terdesak} = \frac{F_A}{\rho_f g}\]</div></div>
+  <p>Titik kerja gaya apung adalah <em>pusat apung</em> \(B\), yaitu centroid volume fluida yang dipindahkan.</p>
+
+  <div class="lab tall" data-sim="float">
+    <div class="lab-head"><b>Lab balok terapung</b><small>balok 20 × 20 × 50 cm, persis soal olimpiade nomor 4</small></div>
+    <canvas id="c-float"></canvas>
+    <div class="lab-ctrl">
+      <div class="ctl"><label for="fl-rb">Massa jenis balok \(\rho_b\) <output id="o-fl-rb"></output></label><input type="range" id="fl-rb" min="100" max="3000" step="10" value="600"></div>
+      <div class="ctl"><label for="fl-m">Beban tambahan di atas <output id="o-fl-m"></output></label><input type="range" id="fl-m" min="0" max="15" step="0.5" value="0"></div>
+      <div class="ctl"><label for="fl-rf">Fluida</label><select id="fl-rf"><option value="1000">Air (1000)</option><option value="800">Minyak (800)</option><option value="1025">Air laut (1025)</option><option value="13600">Raksa (13600)</option></select></div>
+    </div>
+    <div class="lab-read"><div><span>keadaan</span> <b class="hi" id="r-fl-s"></b></div><div><span>tercelup</span> <b id="r-fl-p"></b></div><div><span>\(W\)</span> <b id="r-fl-w"></b></div><div><span>\(F_A\)</span> <b id="r-fl-fa"></b></div><div><span>normal dasar \(N\)</span> <b id="r-fl-n"></b></div></div>
+  </div>
+
+  <h3><span class="sub">6.2</span>Mengapung, melayang, dan tenggelam</h3>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Kondisi benda homogen</th><th>Syarat</th><th>Perilaku</th></tr></thead>
+    <tbody>
+      <tr><td>Mengapung</td><td>\(\rho_b \lt \rho_f\)</td><td>\(F_A = W\) setelah sebagian benda muncul</td></tr>
+      <tr><td>Melayang netral</td><td>\(\rho_b = \rho_f\)</td><td>\(F_A = W\) saat tercelup penuh</td></tr>
+      <tr><td>Tenggelam</td><td>\(\rho_b > \rho_f\)</td><td>Jika dilepas di fluida, \(W > F_A\)</td></tr>
+    </tbody></table></div>
+  <p>Untuk balok homogen yang mengapung tanpa beban:</p>
+  <div class="rumus">
+    <div>\[\frac{V_\text{tercelup}}{V_b} = \frac{\rho_b}{\rho_f}\]</div><div>\[\%\ \text{tercelup} = 100\frac{\rho_b}{\rho_f}\,\%\]</div>
+    <div>\[h_\text{tercelup} = H\frac{\rho_b}{\rho_f}\]</div><div>\[h_\text{muncul} = H\left(1 - \frac{\rho_b}{\rho_f}\right)\]</div>
+  </div>
+  <p>Rumus tinggi berlaku bila penampang horizontal benda konstan dan posisinya tetap seperti yang diasumsikan.</p>
+  <h3><span class="sub">6.3</span>Berat semu dan benda menyentuh dasar</h3>
+  <div class="rumus"><div>\[W_\text{semu} = W - F_A\]</div><div>\[\rho_b = \rho_f\frac{W_\text{udara}}{W_\text{udara} - W_\text{semu}}\]</div></div>
+  <p>Benda yang diam di dasar mendapat gaya normal \(N = W - F_A\) untuk konfigurasi biasa. Rumus ini tidak langsung berlaku bila dasar menghalangi fluida masuk ke bawah benda (efek penyekatan).</p>
+  <h3><span class="sub">6.4</span>Tambahan beban dan fluida berlapis</h3>
+  <div class="rumus">
+    <div>\[\rho_f g V_\text{tercelup} = (m_b + m_\text{beban})g\]</div><div>\[\Delta V = \frac{\Delta m}{\rho_f}\]</div><div>\[\Delta h = \frac{\Delta m}{\rho_f A}\]</div>
+    <div>\[F_A = g\sum_{i=1}^{n}\rho_i V_i\]</div><div class="note">rumus terakhir: benda menempati beberapa lapisan fluida</div>
+  </div>
+  <article class="contoh"><header><span>Contoh 7</span>Balok terapung</header>
+    <dl class="dtj"><dt>DIKETAHUI</dt><dd>\(\rho_b = 600\ \text{kg/m}^3,\ \rho_f = 1000\ \text{kg/m}^3\)</dd>
+    <dt>DITANYA</dt><dd>Bagian volume yang tercelup</dd>
+    <dt>JAWAB</dt><dd>\(V_s/V_b = 600/1000 = 0{,}60\), jadi <span class="hasil">60% volume tercelup</span>. Kalau tinggi balok 50 cm, tinggi tercelup \(0{,}6(50) = 30\) cm.</dd></dl></article>
+  <article class="contoh"><header><span>Contoh 8</span>Menentukan massa jenis dari neraca pegas</header>
+    <dl class="dtj"><dt>DIKETAHUI</dt><dd>Berat di udara 100 N, berat semu di air 60 N, \(\rho_f = 1000\ \text{kg/m}^3\)</dd>
+    <dt>DITANYA</dt><dd>Massa jenis benda</dd>
+    <dt>JAWAB</dt><dd>\(F_A = 100 - 60 = 40\ \text{N}\), jadi \(\rho_b = 1000\cdot\dfrac{100}{40} = \) <span class="hasil">2500 kg/m³</span>.</dd></dl></article>
+  <h3><span class="sub">6.5</span>Stabilitas benda terapung dan metacenter</h3>
+  <p>Untuk kapal atau ponton: \(G\) pusat gravitasi, \(B\) pusat apung, \(M\) metacenter. Untuk kemiringan kecil, jarak metacenter ke pusat gravitasi menentukan kestabilan awal.</p>
+  <div class="rumus">
+    <div>\[BM = \frac{I_{wp}}{V_\text{disp}}\]</div><div>\[GM = BM - BG = KB + BM - KG\]</div>
+    <div>\[M_R \approx W(GM)\sin\theta\]</div><div>\[M_R \approx W(GM)\theta\]</div><div class="note">bentuk terakhir untuk sudut sangat kecil, dalam radian</div>
+  </div>
+  <p>\(GM > 0\): stabil. \(GM = 0\): netral. \(GM \lt 0\): tidak stabil. \(I_{wp}\) adalah momen kedua luas bidang garis air (<em>waterplane</em>) terhadap sumbu kemiringan, \(V_\text{disp}\) volume yang dipindahkan. Kriteria ini tidak berlaku untuk benda yang tercelup <em>penuh</em>.</p>
+</section>
+
+<!-- ================= BAB 7 ================= -->
+<section class="bab col" id="bab-7" data-title="Dipercepat dan berotasi">
+  <div class="bab-head"><div class="bab-num" aria-hidden="true">7</div>
+    <h2>Fluida dalam wadah dipercepat, berotasi, dan atmosfer</h2>
+    <div class="bab-meta"><span class="tag-en">pengayaan</span><button class="got" type="button" data-bab="7" aria-pressed="false">Sudah paham</button></div></div>
+  <h3><span class="sub">7.1</span>Tangki dipercepat horizontal</h3>
+  <p>Bila tangki dipercepat \(a\) ke kanan, fluida dalam kerangka tangki merasakan gaya semu ke kiri. Permukaan bebas tegak lurus gravitasi efektif, jadi lebih tinggi di sisi <em>belakang</em> (kiri).</p>
+  <div class="rumus">
+    <div>\[\tan\theta = \frac{a}{g}\]</div><div>\[\Delta h = \frac{aL}{g}\]</div><div>\[a = \frac{g\,\Delta h}{L}\]</div>
+    <div>\[\frac{\partial P}{\partial x} = -\rho a\]</div><div>\[\frac{\partial P}{\partial z} = -\rho g\]</div><div>\[z(x) = C - \frac{a}{g}x\]</div>
+  </div>
+
+  <div class="lab" data-sim="accel">
+    <div class="lab-head"><b>Lab tangki dipercepat</b><small>panjang tangki 2,4 m, \(g = 10\). Ubah tanda untuk mengerem</small></div>
+    <canvas id="c-accel"></canvas>
+    <div class="lab-ctrl">
+      <div class="ctl"><label for="ac-a">Percepatan \(a\) (positif ke kanan) <output id="o-ac-a"></output></label><input type="range" id="ac-a" min="-6" max="6" step="0.1" value="2.5"></div>
+    </div>
+    <div class="lab-read"><div><span>\(\theta = \arctan(a/g)\)</span> <b class="hi" id="r-ac-t"></b></div><div><span>\(\Delta h = aL/g\)</span> <b id="r-ac-h"></b></div><div><span>sisi lebih tinggi</span> <b id="r-ac-s"></b></div></div>
+  </div>
+  <p>Syaratnya: percepatan cukup konstan sampai fluida tenang relatif terhadap wadah, air awal cukup dalam supaya dasar tidak terbuka, dan dinding cukup tinggi supaya tidak tumpah.</p>
+
+  <h3><span class="sub">7.2</span>Tangki dipercepat vertikal</h3>
+  <div class="rumus">
+    <div>\[g_\text{efektif} = g + a\]</div><div>\[g_\text{efektif} = g - a\]</div><div>\[P_h = \rho g_\text{efektif} h\]</div>
+    <div class="note">kiri: percepatan ke atas. Tengah: percepatan ke bawah</div>
+  </div>
+  <p>Wadah jatuh bebas (\(a = g\) ke bawah) membuat \(g_\text{efektif} = 0\): tekanan hidrostatis akibat berat efektif hilang dalam model ini.</p>
+  <h3><span class="sub">7.3</span>Fluida berputar sebagai benda tegar</h3>
+  <p>Fluida yang berputar seluruhnya dengan kecepatan sudut \(\omega\) membentuk permukaan paraboloid. Gradien tekanan radial menyediakan percepatan sentripetal.</p>
+  <div class="rumus">
+    <div>\[z(r) - z(0) = \frac{\omega^2 r^2}{2g}\]</div><div>\[\Delta h = \frac{\omega^2R^2}{2g}\]</div>
+    <div>\[\frac{\partial P}{\partial r} = \rho\omega^2 r\]</div><div>\[P(r,z) = C + \tfrac12\rho\omega^2r^2 - \rho g z\]</div>
+  </div>
+
+  <div class="lab" data-sim="rotate">
+    <div class="lab-head"><b>Lab silinder berputar</b><small>jari-jari 15 cm, air awal 35 cm; volume air tetap</small></div>
+    <canvas id="c-rotate"></canvas>
+    <div class="lab-ctrl">
+      <div class="ctl"><label for="rt-w">Kecepatan sudut \(\omega\) <output id="o-rt-w"></output></label><input type="range" id="rt-w" min="0" max="20" step="0.5" value="12"></div>
+    </div>
+    <div class="lab-read"><div><span>\(\Delta h = \omega^2R^2/2g\)</span> <b class="hi" id="r-rt-h"></b></div><div><span>tinggi di tengah</span> <b id="r-rt-c"></b></div><div><span>tinggi di tepi</span> <b id="r-rt-e"></b></div></div>
+  </div>
+
+  <h3><span class="sub">7.4</span>Gas dalam kesetimbangan hidrostatik</h3>
+  <p>Atmosfer juga fluida. Untuk gas ideal \(P = \rho R_s T\) dan \(dP/dz = -\rho g\). Kalau suhu dianggap konstan:</p>
+  <div class="rumus"><div>\[PV = nR_uT = mR_sT\]</div><div>\[\rho = \frac{P}{R_sT}\]</div><div>\[P(z) = P_0\,e^{-g(z - z_0)/(R_sT)}\]</div></div>
+  <p>Dengan massa molar \(M\): \(P = P_0 e^{-Mg(z - z_0)/(R_uT)}\). Ini model <em>atmosfer isotermal</em>, tidak selalu akurat untuk seluruh atmosfer.</p>
+</section>
+
+<!-- ================= BAB 8 ================= -->
+<section class="bab col" id="bab-8" data-title="Tegangan permukaan">
+  <div class="bab-head"><div class="bab-num" aria-hidden="true">8</div>
+    <h2>Tegangan permukaan, tetesan, gelembung, dan kapilaritas</h2>
+    <div class="bab-meta"><button class="got" type="button" data-bab="8" aria-pressed="false">Sudah paham</button></div></div>
+  <h3><span class="sub">8.1</span>Tegangan permukaan dan energi antarmuka</h3>
+  <p>Molekul di permukaan cairan tidak dikelilingi tetangga di semua sisi seperti molekul di dalam. Akibatnya cairan cenderung memperkecil luas antarmukanya.</p>
+  <div class="rumus">
+    <div>\[\sigma = \frac{F}{L}\]</div><div>\[F = 2\sigma L\]</div><div>\[dW = \sigma\,dA\]</div><div>\[W = \sigma\,\Delta A\]</div>
+    <div class="note">\(F = 2\sigma L\) untuk selaput sabun (dua sisi); \(W = \sigma\Delta A\) dengan \(\Delta A\) luas total antarmuka</div>
+  </div>
+  <p>Kalau \(\Delta A\) hanya menghitung satu sisi selaput sabun, kedua sisinya memberi \(W = 2\sigma\Delta A\). Satuan \(\sigma\) ialah N/m, setara J/m².</p>
+  <h3><span class="sub">8.2</span>Persamaan Young-Laplace</h3>
+  <div class="rumus">
+    <div>\[\Delta P = \sigma\left(\frac{1}{R_1} + \frac{1}{R_2}\right)\]</div>
+    <div>\[\Delta P_\text{tetesan} = \frac{2\sigma}{r}\]</div><div>\[\Delta P_\text{gelembung sabun} = \frac{4\sigma}{r}\]</div><div>\[\Delta P_\text{silinder} = \frac{\sigma}{r}\]</div>
+  </div>
+  <p>Tetesan punya satu permukaan cair-gas. Gelembung sabun tipis punya dua. Pada jet silinder, salah satu jari-jari kelengkungannya tak hingga.</p>
+  <h3><span class="sub">8.3</span>Kapilaritas dan pembasahan</h3>
+  <p>Di pipa sempit, komponen vertikal tegangan permukaan di tepi menahan berat kolom cairan. Untuk pipa radius \(r\) dan sudut kontak \(\theta\) (diukur <em>melalui cairan</em>): \(2\pi r\sigma\cos\theta = \rho g\pi r^2 h\).</p>
+  <div class="rumus">
+    <div>\[h = \frac{2\sigma\cos\theta}{\rho g r} = \frac{4\sigma\cos\theta}{\rho g D}\]</div>
+    <div>\[r = \frac{2\sigma\cos\theta}{\rho g h}\]</div><div>\[\sigma = \frac{\rho g r h}{2\cos\theta}\]</div><div>\[h_\text{dua pelat} = \frac{2\sigma\cos\theta}{\rho g d}\]</div>
+  </div>
+
+  <div class="lab" data-sim="capil">
+    <div class="lab-head"><b>Lab kapiler</b><small>air, \(\sigma = 0{,}0728\) N/m, \(g = 9{,}8\). Sudut di atas 90° meniru raksa</small></div>
+    <canvas id="c-capil"></canvas>
+    <div class="lab-ctrl">
+      <div class="ctl"><label for="cp-r">Jari-jari tabung \(r\) <output id="o-cp-r"></output></label><input type="range" id="cp-r" min="0.1" max="1.5" step="0.05" value="0.5"></div>
+      <div class="ctl"><label for="cp-t">Sudut kontak \(\theta\) <output id="o-cp-t"></output></label><input type="range" id="cp-t" min="0" max="140" step="1" value="0"></div>
+    </div>
+    <div class="lab-read"><div><span>\(h = 2\sigma\cos\theta/(\rho g r)\)</span> <b class="hi" id="r-cp-h"></b></div><div><span>meniskus</span> <b id="r-cp-m"></b></div></div>
+  </div>
+
+  <p>\(\theta \lt 90^\circ\): \(\cos\theta > 0\), cairan naik. \(\theta > 90^\circ\): cairan turun (depresi). Model ideal ini menganggap meniskus mengikuti geometri kapiler kecil.</p>
+  <h3><span class="sub">8.4</span>Energi adhesi dan persamaan Young</h3>
+  <div class="rumus"><div>\[\sigma_{SV} = \sigma_{SL} + \sigma_{LV}\cos\theta\]</div><div>\[W_A = \sigma_{LV}(1 + \cos\theta)\]</div><div>\[S = \sigma_{SV} - \sigma_{SL} - \sigma_{LV}\]</div></div>
+  <p>\(W_A\) adalah kerja adhesi per luas (model Young-Dupré); \(S\) koefisien penyebaran. Ini pengayaan fisika antarmuka dengan asumsi permukaan ideal dan setimbang.</p>
+  <article class="contoh"><header><span>Contoh 9</span>Kenaikan air dalam kapiler</header>
+    <dl class="dtj"><dt>DIKETAHUI</dt><dd>\(\sigma = 0{,}0728\ \text{N/m},\ r = 0{,}0005\ \text{m},\ \theta = 0^\circ,\ \rho = 1000,\ g = 9{,}8\)</dd>
+    <dt>DITANYA</dt><dd>Kenaikan permukaan \(h\)</dd>
+    <dt>JAWAB</dt><dd>\(h = \dfrac{2(0{,}0728)(1)}{1000(9{,}8)(0{,}0005)} \approx 0{,}0297\ \text{m} = \) <span class="hasil">2,97 cm</span>. Nilai bawaan lab di atas sama dengan contoh ini.</dd></dl></article>
+</section>
+
+<!-- ================= BAB 9 ================= -->
+<section class="bab col" id="bab-9" data-title="Kontinuitas dan Bernoulli">
+  <div class="bab-head"><div class="bab-num" aria-hidden="true">9</div>
+    <h2>Fluida dinamis: debit, kontinuitas, dan Bernoulli</h2>
+    <div class="bab-meta"><button class="got" type="button" data-bab="9" aria-pressed="false">Sudah paham</button></div></div>
+  <h3><span class="sub">9.1</span>Jenis aliran dan garis arus</h3>
+  <p>Pada aliran <em>tunak</em>, kecepatan di suatu posisi tidak berubah terhadap waktu. Pada aliran <em>laminar</em>, lapisan fluida bergerak teratur; pada aliran <em>turbulen</em>, muncul fluktuasi dan pusaran. <em>Garis arus</em> menyinggung arah kecepatan lokal dan tidak saling berpotongan dalam medan kecepatan yang terdefinisi baik.</p>
+  <h3><span class="sub">9.2</span>Debit volume dan massa</h3>
+  <div class="rumus">
+    <div>\[Q = \frac{\Delta V}{\Delta t}\]</div><div>\[Q = \frac{dV}{dt}\]</div><div>\[Q = A\,v_\text{rata-rata}\]</div><div>\[\dot m = \rho Q = \rho A v_\text{rata-rata}\]</div>
+  </div>
+  <p>Untuk penampang yang berubah dan profil kecepatan tak seragam, bentuk umumnya \(Q = \int_A \mathbf v\cdot d\mathbf A\). Contoh: \(Q = 0{,}005\ \text{m}^3/\text{s} = 5\ \text{L/s}\).</p>
+  <h3><span class="sub">9.3</span>Persamaan kontinuitas dari kekekalan massa</h3>
+  <p>Selama \(\Delta t\), massa yang masuk penampang 1 adalah \(\rho_1A_1v_1\Delta t\) dan yang keluar penampang 2 adalah \(\rho_2A_2v_2\Delta t\). Untuk aliran tunak tanpa akumulasi:</p>
+  <div class="rumus">
+    <div>\[\rho_1A_1v_1 = \rho_2A_2v_2\]</div><div>\[A_1v_1 = A_2v_2\]</div><div>\[\frac{v_2}{v_1} = \frac{A_1}{A_2} = \left(\frac{r_1}{r_2}\right)^2 = \left(\frac{D_1}{D_2}\right)^2\]</div>
+  </div>
+  <p>Pipa lebih sempit berarti kecepatan rata-rata lebih besar bila debit tetap. Kecepatan saja belum menentukan tekanan; kamu butuh persamaan energi dan data ketinggian.</p>
+  <h3><span class="sub">9.4</span>Bernoulli dari usaha dan energi</h3>
+  <p>Untuk fluida ideal, tak termampatkan, tunak, sepanjang garis arus, tanpa pompa, turbin, atau rugi energi:</p>
+  <div class="rumus"><div>\[P + \tfrac12\rho v^2 + \rho g z = C\]</div><div>\[P_1 + \tfrac12\rho v_1^2 + \rho g z_1 = P_2 + \tfrac12\rho v_2^2 + \rho g z_2\]</div></div>
+  <p>Asal rumusnya: usaha bersih oleh tekanan \((P_1 - P_2)\Delta V\) menghasilkan perubahan \(\tfrac12\rho\Delta V(v_2^2 - v_1^2) + \rho g\Delta V(z_2 - z_1)\). Bagi dengan \(\Delta V\), jadilah Bernoulli. Untuk pipa horizontal (\(z_1 = z_2\)):</p>
+  <div class="rumus"><div>\[P_1 - P_2 = \tfrac12\rho(v_2^2 - v_1^2)\]</div><div>\[P_d = \tfrac12\rho v^2\]</div><div>\[P_0 = P + \tfrac12\rho v^2\]</div><div class="note">\(P_0\): tekanan stagnasi, elevasi sama</div></div>
+
+  <div class="lab tall" data-sim="bern">
+    <div class="lab-head"><b>Lab pipa menyempit</b><small>partikel melaju di leher pipa; tabung piezometer menunjukkan tekanan turun</small></div>
+    <canvas id="c-bern"></canvas>
+    <div class="lab-ctrl">
+      <div class="ctl"><label for="bn-v">Kecepatan masuk \(v_1\) <output id="o-bn-v"></output></label><input type="range" id="bn-v" min="0.5" max="4" step="0.1" value="2"></div>
+      <div class="ctl"><label for="bn-r">Rasio luas \(A_2/A_1\) <output id="o-bn-r"></output></label><input type="range" id="bn-r" min="0.2" max="1" step="0.05" value="0.5"></div>
+    </div>
+    <div class="lab-read"><div><span>\(P_1\)</span> <b>200 kPa</b></div><div><span>\(v_2 = (A_1/A_2)v_1\)</span> <b class="hi" id="r-bn-v2"></b></div><div><span>\(P_2\)</span> <b class="hi" id="r-bn-p2"></b></div><div><span>\(P_1 - P_2\)</span> <b id="r-bn-dp"></b></div></div>
+  </div>
+
+  <p>Dalam pipa horizontal ideal, saat luas mengecil, \(v\) naik dan tekanan statis turun. Untuk aliran berputar atau tidak ideal, aturan “cepat berarti tekanan rendah” tidak boleh dipakai tanpa syarat.</p>
+  <article class="contoh"><header><span>Contoh 10</span>Kontinuitas pada pipa menyempit</header>
+    <dl class="dtj"><dt>DIKETAHUI</dt><dd>\(A_1 = 8\ \text{cm}^2,\ A_2 = 2\ \text{cm}^2,\ v_1 = 1{,}5\ \text{m/s}\)</dd>
+    <dt>DITANYA</dt><dd>\(v_2\)</dd>
+    <dt>JAWAB</dt><dd>\(v_2 = A_1v_1/A_2 = 8(1{,}5)/2 = \) <span class="hasil">6 m/s</span></dd></dl></article>
+  <article class="contoh"><header><span>Contoh 11</span>Gabungan kontinuitas dan Bernoulli</header>
+    <dl class="dtj"><dt>DIKETAHUI</dt><dd>\(A_1 = 4\ \text{cm}^2,\ A_2 = 2\ \text{cm}^2,\ v_1 = 2\ \text{m/s},\ P_1 = 200000\ \text{Pa},\ \rho = 1000\); pipa horizontal ideal</dd>
+    <dt>DITANYA</dt><dd>\(v_2\) dan \(P_2\)</dd>
+    <dt>JAWAB</dt><dd>Kontinuitas: \(v_2 = (A_1/A_2)v_1 = 4\ \text{m/s}\). Bernoulli: \(P_2 = P_1 + \tfrac12\rho(v_1^2 - v_2^2) = 200000 + 500(4 - 16) = \) <span class="hasil">194000 Pa</span>. Ini nilai bawaan lab di atas.</dd></dl></article>
+  <h3><span class="sub">9.5</span>Bernoulli dalam satuan head</h3>
+  <p>Bagi dengan \(\rho g\) untuk mendapat tinggi ekuivalen energi per satuan berat:</p>
+  <div class="rumus"><div>\[\frac{P}{\rho g} + \frac{v^2}{2g} + z = C_h\]</div></div>
+  <p>Suku-sukunya berturut-turut <em>pressure head</em>, <em>velocity head</em>, dan <em>elevation head</em>. Bentuk ini dasar perhitungan pompa dan kehilangan energi.</p>
+</section>
+
+<!-- ================= BAB 10 ================= -->
+<section class="bab col" id="bab-10" data-title="Torricelli, venturi, Pitot">
+  <div class="bab-head"><div class="bab-num" aria-hidden="true">10</div>
+    <h2>Torricelli, venturimeter, tabung Pitot, dan gerak pancaran</h2>
+    <div class="bab-meta"><button class="got" type="button" data-bab="10" aria-pressed="false">Sudah paham</button></div></div>
+  <h3><span class="sub">10.1</span>Hukum Torricelli</h3>
+  <p>Terapkan Bernoulli antara permukaan tangki besar dan lubang kecil: kedua titik bertekanan atmosfer, kecepatan permukaan \(v_1 \approx 0\), selisih elevasi \(h\).</p>
+  <div class="rumus"><div>\[v_\text{keluar} = \sqrt{2gh}\]</div><div>\[Q_\text{ideal} = A_o\sqrt{2gh}\]</div><div>\[Q_\text{nyata} = C_dA_o\sqrt{2gh}\]</div></div>
+  <p>\(C_d\) koefisien debit; menggambarkan penyimpangan dari model ideal, misalnya karena kontraksi jet.</p>
+  <h3><span class="sub">10.2</span>Pancaran horizontal dan gerak parabola</h3>
+  <p>Setelah keluar horizontal, komponen horizontal kecepatan tetap (tanpa hambatan udara), sedangkan komponen vertikal dipercepat gravitasi. Lubang berada \(H\) di atas tanah:</p>
+  <div class="rumus"><div>\[t = \sqrt{\frac{2H}{g}}\]</div><div>\[x = v_0t = 2\sqrt{hH}\]</div><div>\[v_0 = \sqrt{2gh}\]</div></div>
+
+  <div class="lab tall" data-sim="jet">
+    <div class="lab-head"><b>Lab pancaran tangki</b><small>\(h\): lubang di bawah permukaan. \(H\): lubang di atas tanah. \(g = 10\)</small></div>
+    <canvas id="c-jet"></canvas>
+    <div class="lab-ctrl">
+      <div class="ctl"><label for="tr-h">Kedalaman lubang \(h\) <output id="o-tr-h"></output></label><input type="range" id="tr-h" min="0.1" max="5" step="0.05" value="1.25"></div>
+      <div class="ctl"><label for="tr-H">Tinggi lubang \(H\) <output id="o-tr-H"></output></label><input type="range" id="tr-H" min="0.1" max="3" step="0.05" value="0.8"></div>
+    </div>
+    <div class="lab-read"><div><span>\(v_0\)</span> <b id="r-tr-v"></b></div><div><span>\(t\)</span> <b id="r-tr-t"></b></div><div><span>\(x = 2\sqrt{hH}\)</span> <b class="hi" id="r-tr-x"></b></div></div>
+  </div>
+
+  <article class="contoh"><header><span>Contoh 12</span>Air dari lubang tangki</header>
+    <dl class="dtj"><dt>DIKETAHUI</dt><dd>\(h = 1{,}25\ \text{m},\ H = 0{,}8\ \text{m},\ g = 10\ \text{m/s}^2\)</dd>
+    <dt>DITANYA</dt><dd>Kelajuan keluar, waktu jatuh, jangkauan</dd>
+    <dt>JAWAB</dt><dd>\(v_0 = \sqrt{2(10)(1{,}25)} = 5\ \text{m/s}\), \(t = \sqrt{2(0{,}8)/10} = 0{,}4\ \text{s}\), \(x = 5(0{,}4) = \) <span class="hasil">2 m</span>.</dd></dl></article>
+  <h3><span class="sub">10.3</span>Venturimeter</h3>
+  <p>Pada venturimeter horizontal ideal, gabungkan kontinuitas dan Bernoulli untuk kecepatan di leher \(A_2 \lt A_1\):</p>
+  <div class="rumus"><div>\[v_2 = \sqrt{\frac{2(P_1 - P_2)}{\rho\left[1 - (A_2/A_1)^2\right]}}\]</div><div>\[Q = A_2v_2\]</div></div>
+  <p>Alat nyata: \(Q_\text{aktual} = C_dQ_\text{ideal}\). Pakai <em>selisih tekanan</em>, bukan langsung tinggi cairan tanpa konversi yang tepat.</p>
+  <h3><span class="sub">10.4</span>Tabung Pitot</h3>
+  <p>Titik stagnasi berkecepatan nol. Dengan rugi energi dan beda elevasi diabaikan:</p>
+  <div class="rumus"><div>\[P_0 - P = \tfrac12\rho v^2 \;\Rightarrow\; v = \sqrt{\frac{2(P_0 - P)}{\rho}}\]</div></div>
+  <h3><span class="sub">10.5</span>Tangki dengan permukaan air turun</h3>
+  <p>Kalau luas tangki \(A_T \gg A_o\), Torricelli bisa dipakai sepanjang proses. Dari \(-A_T\,dh/dt = C_dA_o\sqrt{2gh}\), waktu turun dari \(h_i\) ke \(h_f\):</p>
+  <div class="rumus"><div>\[t = \frac{2A_T}{C_dA_o\sqrt{2g}}\left(\sqrt{h_i} - \sqrt{h_f}\right)\]</div></div>
+  <p>Ini pengayaan; asumsinya penampang tangki tetap dan koefisien debit konstan.</p>
+</section>
+
+<!-- ================= BAB 11 ================= -->
+<section class="bab col" id="bab-11" data-title="Viskositas dan pipa">
+  <div class="bab-head"><div class="bab-num" aria-hidden="true">11</div>
+    <h2>Fluida nyata: viskositas, Stokes, Reynolds, Poiseuille, dan pipa</h2>
+    <div class="bab-meta"><button class="got" type="button" data-bab="11" aria-pressed="false">Sudah paham</button></div></div>
+  <h3><span class="sub">11.1</span>Hukum Newton tentang viskositas</h3>
+  <p>Cairan kental punya gaya geser antarlapisan. Untuk <em>fluida Newtonian</em>, tegangan geser sebanding dengan gradien kecepatan. Di antara dua pelat sejajar dengan profil kecepatan linear:</p>
+  <div class="rumus"><div>\[\tau = \mu\frac{dv}{dy}\]</div><div>\[F = \mu A\frac{\Delta v}{L}\]</div><div>\[\nu = \frac{\mu}{\rho}\]</div></div>
+  <p>\(\mu\) bersatuan Pa·s, \(\nu\) bersatuan m²/s. Madu biasanya jauh lebih kental daripada air, dan viskositas berubah dengan suhu dan komposisi.</p>
+  <article class="contoh"><header><span>Contoh 13</span>Gaya geser dua pelat</header>
+    <dl class="dtj"><dt>DIKETAHUI</dt><dd>\(\mu = 0{,}5\ \text{Pa s},\ A = 2\ \text{m}^2,\ v = 0{,}2\ \text{m/s}\), jarak \(L = 0{,}1\ \text{m}\)</dd>
+    <dt>DITANYA</dt><dd>Gaya geser \(F\)</dd>
+    <dt>JAWAB</dt><dd>\(F = \mu Av/L = 0{,}5(2)(0{,}2)/0{,}1 = \) <span class="hasil">2 N</span></dd></dl></article>
+  <h3><span class="sub">11.2</span>Hambat Stokes dan kecepatan terminal</h3>
+  <p>Bola radius \(r\) yang bergerak pelan dalam fluida Newtonian mengalami hambatan pada rezim <em>creeping flow</em> (Reynolds bola sangat kecil):</p>
+  <div class="rumus"><div>\[F_D = 6\pi\mu r v\]</div><div>\[V_\text{bola} = \tfrac43\pi r^3\]</div></div>
+  <p>Pada kecepatan terminal, berat = gaya apung + hambatan: \(\rho_b\tfrac43\pi r^3 g = \rho_f\tfrac43\pi r^3 g + 6\pi\mu r v_t\).</p>
+  <div class="rumus"><div>\[v_t = \frac{2r^2(\rho_b - \rho_f)g}{9\mu}\]</div></div>
+  <p>Selalu cek \(Re_\text{bola} = \rho_f v_t(2r)/\mu \ll 1\). Kalau tidak, Stokes tidak memadai; pakai \(F_D = \tfrac12 C_D\rho Av^2\) dengan \(C_D\) yang sesuai \(Re\).</p>
+
+  <div class="lab tall" data-sim="stokes">
+    <div class="lab-head"><b>Lab bola jatuh dalam cairan kental</b><small>cairan \(\rho_f = 1200\), \(\mu = 0{,}8\) Pa·s, \(g = 10\) (soal olimpiade nomor 9). Gerak diperlambat agar terlihat</small></div>
+    <canvas id="c-stokes"></canvas>
+    <div class="lab-ctrl">
+      <div class="ctl"><label for="st-r">Jari-jari bola \(r\) <output id="o-st-r"></output></label><input type="range" id="st-r" min="0.2" max="2" step="0.05" value="0.5"></div>
+      <div class="ctl"><label for="st-b">Bahan bola</label><select id="st-b"><option value="7800">Baja (7800)</option><option value="2500">Kaca (2500)</option><option value="11300">Timbal (11300)</option><option value="1400">Plastik (1400)</option></select></div>
+    </div>
+    <div class="lab-read"><div><span>\(v_t\)</span> <b class="hi" id="r-st-v"></b></div><div><span>\(Re_\text{bola}\)</span> <b id="r-st-re"></b></div><div><span>model Stokes</span> <b id="r-st-ok"></b></div></div>
+  </div>
+
+  <h3><span class="sub">11.3</span>Aliran laminar, transisi, dan turbulen</h3>
+  <p>Bilangan Reynolds membandingkan pengaruh inersia terhadap viskositas:</p>
+  <div class="rumus"><div>\[Re = \frac{\rho\bar vD}{\mu} = \frac{\bar vD}{\nu}\]</div></div>
+  <p>Klasifikasi kasar untuk <em>pipa bundar</em>: \(Re \lt 2300\) laminar, 2300–4000 transisi, \(Re > 4000\) turbulen. Gangguan, kekasaran, dan kondisi masuk ikut berpengaruh, jadi batas ini bukan hukum universal.</p>
+
+  <div class="lab" data-sim="reyn">
+    <div class="lab-head"><b>Lab Reynolds</b><small>pita tinta di pipa: lurus saat laminar, berantakan saat turbulen</small></div>
+    <canvas id="c-reyn"></canvas>
+    <div class="lab-ctrl">
+      <div class="ctl"><label for="re-v">Kecepatan rata-rata \(\bar v\) <output id="o-re-v"></output></label><input type="range" id="re-v" min="0.01" max="1" step="0.01" value="0.5"></div>
+      <div class="ctl"><label for="re-d">Diameter \(D\) <output id="o-re-d"></output></label><input type="range" id="re-d" min="0.5" max="5" step="0.1" value="2"></div>
+      <div class="ctl"><label for="re-f">Fluida</label><select id="re-f"><option value="1000,0.001">Air (μ = 0,001 Pa·s)</option><option value="880,0.1">Oli (μ = 0,1 Pa·s)</option><option value="1260,1.41">Gliserin (μ = 1,41 Pa·s)</option></select></div>
+    </div>
+    <div class="lab-read"><div><span>\(Re\)</span> <b class="hi" id="r-re-re"></b></div><div><span>jenis aliran</span> <b id="r-re-k"></b></div></div>
+  </div>
+
+  <article class="contoh"><header><span>Contoh 14</span>Klasifikasi Reynolds</header>
+    <dl class="dtj"><dt>DIKETAHUI</dt><dd>\(\rho = 1000,\ \bar v = 0{,}5\ \text{m/s},\ D = 0{,}02\ \text{m},\ \mu = 0{,}001\ \text{Pa s}\)</dd>
+    <dt>DITANYA</dt><dd>\(Re\) dan karakter aliran</dd>
+    <dt>JAWAB</dt><dd>\(Re = 1000(0{,}5)(0{,}02)/0{,}001 = 10000\). Untuk pipa bundar, <span class="hasil">turbulen</span>. Ini nilai bawaan lab di atas.</dd></dl></article>
+  <h3><span class="sub">11.4</span>Hukum Hagen-Poiseuille</h3>
+  <p>Untuk aliran <em>laminar berkembang penuh</em> fluida Newtonian tak termampatkan dalam pipa radius \(R\), panjang \(L\), dengan \(\Delta P > 0\):</p>
+  <div class="rumus">
+    <div>\[Q = \frac{\pi R^4\Delta P}{8\mu L}\]</div><div>\[R_h = \frac{\Delta P}{Q} = \frac{8\mu L}{\pi R^4}\]</div>
+    <div>\[\bar v = \frac{R^2\Delta P}{8\mu L}\]</div><div>\[v_\text{max} = 2\bar v\]</div>
+    <div>\[v(r) = \frac{\Delta P}{4\mu L}(R^2 - r^2)\]</div><div>\[|\tau(r)| = \frac{\Delta P}{2L}r\]</div><div>\[|\tau_w| = \frac{\Delta P}{2L}R\]</div>
+  </div>
+
+  <div class="lab" data-sim="pois">
+    <div class="lab-head"><b>Lab profil Poiseuille</b><small>panah = kecepatan lokal, berbentuk parabola. Debit relatif terhadap pipa awal</small></div>
+    <canvas id="c-pois"></canvas>
+    <div class="lab-ctrl">
+      <div class="ctl"><label for="ps-r">Radius \(R/R_0\) <output id="o-ps-r"></output></label><input type="range" id="ps-r" min="0.5" max="1.5" step="0.05" value="1"></div>
+      <div class="ctl"><label for="ps-l">Panjang \(L/L_0\) <output id="o-ps-l"></output></label><input type="range" id="ps-l" min="0.5" max="2" step="0.1" value="1"></div>
+    </div>
+    <div class="lab-read"><div><span>\(Q/Q_0 = (R/R_0)^4/(L/L_0)\)</span> <b class="hi" id="r-ps-q"></b></div><div><span>\(R_h/R_{h0}\)</span> <b id="r-ps-rh"></b></div></div>
+  </div>
+
+  <p>Radius dua kali (dengan \(\Delta P, \mu, L\) sama) membuat debit \(2^4 = 16\) kali. Radius setengah dan panjang dua kali membuat debit \(1/(16\cdot2) = 1/32\) kali. Poiseuille <em>tidak</em> otomatis berlaku untuk aliran turbulen.</p>
+  <h3><span class="sub">11.5</span>Hambatan hidraulik seri dan paralel</h3>
+  <p>Dalam model linear \(Q = \Delta P/R_h\): pipa <em>seri</em> (debit sama) memberi \(R_\text{eq} = \sum R_i\); pipa <em>paralel</em> (beda tekanan sama) memberi \(1/R_\text{eq} = \sum 1/R_i\). Persis seperti hambatan listrik, untuk aliran laminar.</p>
+  <h3><span class="sub">11.6</span>Darcy-Weisbach dan rugi minor</h3>
+  <div class="rumus">
+    <div>\[h_f = f_D\frac{L}{D}\frac{\bar v^2}{2g}\]</div><div>\[\Delta P_f = f_D\frac{L}{D}\frac{\rho\bar v^2}{2}\]</div>
+    <div>\[h_m = K\frac{\bar v^2}{2g}\]</div><div>\[h_L = h_f + \sum h_m\]</div><div>\[f_D = \frac{64}{Re}\]</div><div class="note">\(f_D = 64/Re\) hanya untuk laminar pipa bundar</div>
+  </div>
+  <p>\(f_D\) adalah faktor gesekan <em>Darcy</em>, bukan <em>Fanning</em>. Untuk turbulen, \(f_D\) bergantung pada \(Re\) dan kekasaran relatif, misalnya lewat diagram Moody.</p>
+  <h3><span class="sub">11.7</span>Persamaan energi dengan pompa dan turbin</h3>
+  <div class="rumus">
+    <div>\[\frac{P_1}{\rho g} + \frac{\alpha_1\bar v_1^2}{2g} + z_1 + h_p = \frac{P_2}{\rho g} + \frac{\alpha_2\bar v_2^2}{2g} + z_2 + h_t + h_L\]</div>
+    <div>\[\mathcal P_\text{hidraulik} = \rho gQH\]</div><div>\[\mathcal P_\text{masuk,pompa} = \frac{\rho gQH}{\eta_p}\]</div><div>\[\mathcal P_\text{keluar,turbin} = \eta_t\rho gQH\]</div>
+  </div>
+  <p>\(\alpha\) faktor koreksi energi kinetik. Pendekatan dasar: \(\alpha_1 = \alpha_2 = 1\), terutama untuk turbulen. Laminar berkembang penuh: \(\alpha = 2\).</p>
+  <h3><span class="sub">11.8</span>Kavitasi: batas fisik tekanan</h3>
+  <p>Jika tekanan absolut cairan turun mendekati tekanan uap pada suhu itu, gelembung uap terbentuk. Saat gelembung runtuh di daerah bertekanan tinggi, timbul getaran, bising, dan kerusakan. Kavitasi bisa terjadi di pompa, katup, atau penyempitan. Bernoulli ideal membantu memperkirakan penurunan tekanan, tetapi penilaian nyata butuh data tekanan uap dan kondisi alat.</p>
+</section>
+
+<!-- ================= BAB 12 ================= -->
+<section class="bab col" id="bab-12" data-title="Memilih persamaan">
+  <div class="bab-head"><div class="bab-num" aria-hidden="true">12</div>
+    <h2>Panduan memilih persamaan dan kesalahan yang sering muncul</h2>
+    <div class="bab-meta"><button class="got" type="button" data-bab="12" aria-pressed="false">Sudah paham</button></div></div>
+  <p>Kunci soal fluida ialah mengenali petunjuk di kalimat soal lalu memilih hukum yang tepat. Latih refleks itu di sini: baca petunjuknya, pilih persamaannya.</p>
+  <div class="game" id="game">
+    <div class="score"><span>Skor <b id="g-score">0</b></span><span>Beruntun <b id="g-streak">0</b></span><span>Soal <b id="g-n">1</b>/20</span></div>
+    <div class="game-clue" id="g-clue" aria-live="polite"></div>
+    <div class="game-opts" id="g-opts"></div>
+    <div class="game-foot"><span id="g-msg">Pilih satu persamaan.</span><button class="btn" type="button" id="g-next" hidden>Petunjuk berikutnya</button></div>
+  </div>
+  <details>
+    <summary class="ui" style="cursor:pointer;font-weight:650;">Lihat tabel lengkap petunjuk dan persamaannya</summary>
+    <div class="tbl-wrap"><table><thead><tr><th>Petunjuk dalam soal</th><th>Hukum atau persamaan</th></tr></thead><tbody id="guideTable"></tbody></table></div>
+  </details>
+  <h3>Sepuluh kesalahan yang perlu dihindari</h3>
+  <ol class="salah">
+    <li>cm² langsung dipakai sebagai m².</li>
+    <li>Diameter disalahartikan sebagai radius.</li>
+    <li>Seluruh volume benda dipakai pada soal benda yang hanya sebagian tercelup.</li>
+    <li>Tekanan gauge disamakan dengan tekanan absolut.</li>
+    <li>Semua lapisan fluida dianggap bermassa jenis sama.</li>
+    <li>Tekanan di satu titik disamakan dengan resultan gaya pada seluruh bidang.</li>
+    <li>Bernoulli dipakai tanpa memeriksa rugi aliran.</li>
+    <li>Stokes atau Poiseuille dipakai tanpa memeriksa Reynolds.</li>
+    <li>Faktor 2 untuk selaput sabun dilupakan.</li>
+    <li>Sudut derajat dicampur dengan pendekatan sudut kecil dalam radian.</li>
+  </ol>
+</section>
+
+<!-- ================= BAB 13 ================= -->
+<section class="bab col" id="bab-13" data-title="Kumpulan rumus">
+  <div class="bab-head"><div class="bab-num" aria-hidden="true">13</div>
+    <h2>Kumpulan rumus lengkap berurutan</h2>
+    <div class="bab-meta"><button class="got" type="button" data-bab="13" aria-pressed="false">Sudah paham</button></div></div>
+  <p>Semua rumus utama dari Bab 2 sampai 11 dalam satu tempat. Cari dengan nama atau simbol, saring per kelompok, atau nyalakan mode kartu hafalan: rumus disamarkan sampai kamu mengetuk kartunya. Syarat pemakaian tetap ada di bab teorinya.</p>
+  <div class="bank-tools">
+    <input type="search" id="bankSearch" placeholder="Cari: Bernoulli, kapiler, Reynolds…" aria-label="Cari rumus">
+    <label class="switch"><input type="checkbox" id="flashMode"> Mode kartu hafalan</label>
+  </div>
+  <div class="chips" id="bankChips" role="group" aria-label="Saring kelompok rumus"></div>
+  <p class="bank-count" id="bankCount" style="margin-top:10px"></p>
+  <div class="bank" id="bank"></div>
+</section>
+
+<!-- ================= BAB 14 ================= -->
+<section class="bab col" id="bab-14" data-title="Latihan bertingkat">
+  <div class="bab-head"><div class="bab-num" aria-hidden="true">14</div>
+    <h2>Soal latihan bertingkat sebelum olimpiade</h2>
+    <div class="bab-meta"><button class="got" type="button" data-bab="14" aria-pressed="false">Sudah paham</button></div></div>
+  <p>Pakai \(g = 9{,}8\ \text{m/s}^2\). Ketik jawabanmu (koma atau titik desimal sama-sama boleh, notasi \(1{,}885\text{e-}3\) juga bisa), lalu periksa. Selisih sampai 2% dianggap benar karena pembulatan.</p>
+  <div class="score" style="margin-top:14px"><span>Benar <b id="q-score">0</b>/10</span><button class="btn ghost" type="button" id="q-reset">Ulang semua</button></div>
+  <ol class="q-list" id="qList"></ol>
+</section>
+
+<!-- ================= BAB 15–16 ================= -->
+<section class="bab col" id="bab-15" data-title="Paket olimpiade">
+  <div class="bab-head"><div class="bab-num" aria-hidden="true">15</div>
+    <h2>Paket 10 soal olimpiade fluida dan pembahasannya</h2>
+    <div class="bab-meta"><span class="tag-en">Bab 15–16 modul</span><button class="got" type="button" data-bab="15" aria-pressed="false">Sudah paham</button></div></div>
+  <div class="jebak info"><svg width="30" height="30" aria-hidden="true"><use href="#i-drop"/></svg><div><b>Petunjuk paket.</b> Ini soal latihan orisinal bergaya olimpiade, bukan soal olimpiade nasional resmi. Pakai \(g = 10\ \text{m/s}^2\) kecuali soal menyebut lain, dan abaikan viskositas serta hambatan udara kecuali disebutkan. Kerjakan dulu di kertas. Pembahasan dibuka satu langkah per ketukan, jadi kamu bisa berhenti begitu sudah menemukan arah.</div></div>
+
+  <article class="olim"><header><span class="on">1</span><h4>Massa jenis berubah terhadap kedalaman</h4><span class="topic">hidrostatika nonhomogen</span></header>
+    <div class="soal"><p>Massa jenis cairan sebagai fungsi kedalaman: \(\rho(y) = 900 + 100y\) kg/m³, \(y\) dalam meter dari permukaan. Kedalaman air 4 m. Tentukan (a) tekanan gauge \(P(y)\); (b) tekanan gauge dasar; (c) tekanan absolut dasar jika \(P_\text{atm} = 100000\) Pa.</p></div>
+    <ol class="steps">
+      <li><b>Langkah 1.</b> Karena \(\rho\) bergantung pada kedalaman, pakai bentuk diferensial: \(\dfrac{dP}{dy} = \rho(y)g = 10(900 + 100y)\).</li>
+      <li><b>Langkah 2.</b> Integralkan dari permukaan: \(P_g(y) = \displaystyle\int_0^y (9000 + 1000s)\,ds = 9000y + 500y^2\).</li>
+      <li><b>Langkah 3.</b> Di \(y = 4\): \(P_g(4) = 9000(4) + 500(4)^2 = 36000 + 8000 = 44000\) Pa.</li>
+      <li><b>Langkah 4.</b> Tambahkan atmosfer: \(P_\text{abs}(4) = 100000 + 44000 = 144000\) Pa.</li>
+      <li><b>Hasil.</b> <span class="hasil">(a) \(9000y + 500y^2\) Pa; (b) 44000 Pa; (c) 144000 Pa</span></li>
+    </ol>
+    <div class="olim-ctl"><button class="btn" type="button" data-step>Buka langkah 1</button><button class="btn ghost" type="button" data-all>Tampilkan semua</button></div>
+    <div class="jebak" hidden data-trap><svg width="30" height="30" aria-hidden="true"><use href="#i-buoy"/></svg><div><b>Kesalahan umum.</b> Memasukkan massa jenis di dasar \(\rho(4) = 1300\) ke \(\rho g h\) memberi 52000 Pa, salah. \(\rho\) berubah, jadi harus diintegralkan.</div></div>
+  </article>
+
+  <article class="olim"><header><span class="on">2</span><h4>Manometer air, raksa, dan minyak</h4><span class="topic">manometer tiga cairan</span></header>
+    <div class="soal"><p>Tabung U berisi raksa. Di kaki kiri ada kolom air 30 cm di atas raksa; di kaki kanan kolom minyak 25 cm di atas raksa. Kedua permukaan bebas terbuka ke atmosfer. Antarmuka raksa di kanan 1 cm lebih tinggi daripada di kiri. Tentukan massa jenis minyak.</p></div>
+    <ol class="steps">
+      <li><b>Diketahui.</b> \(h_w = 0{,}30\) m, \(h_o = 0{,}25\) m, \(\delta = 0{,}01\) m, \(\rho_w = 1000\), \(\rho_\text{Hg} = 13600\) kg/m³. Antarmuka kanan lebih tinggi.</li>
+      <li><b>Langkah 1.</b> Tekanan tepat di antarmuka kiri: \(P_L = P_\text{atm} + \rho_wgh_w\). Di antarmuka kanan: \(P_R = P_\text{atm} + \rho_ogh_o\).</li>
+      <li><b>Langkah 2.</b> Antarmuka kiri lebih dalam \(\delta\) di dalam raksa, jadi \(P_L = P_R + \rho_\text{Hg}g\delta\), atau \(\rho_wgh_w = \rho_ogh_o + \rho_\text{Hg}g\delta\).</li>
+      <li><b>Langkah 3.</b> Coret \(g\): \(\rho_o = \dfrac{\rho_wh_w - \rho_\text{Hg}\delta}{h_o} = \dfrac{1000(0{,}30) - 13600(0{,}01)}{0{,}25} = \dfrac{300 - 136}{0{,}25}\).</li>
+      <li><b>Hasil.</b> <span class="hasil">\(\rho_o = 656\ \text{kg/m}^3\)</span>. Lebih kecil dari air, masuk akal untuk minyak ringan. Kalau arah selisih raksa dibalik, persamaan dan jawabannya ikut berubah.</li>
+    </ol>
+    <div class="olim-ctl"><button class="btn" type="button" data-step>Buka langkah 1</button><button class="btn ghost" type="button" data-all>Tampilkan semua</button></div>
+  </article>
+
+  <article class="olim"><header><span class="on">3</span><h4>Pintu bendungan terendam</h4><span class="topic">gaya hidrostatik dan pusat tekanan</span></header>
+    <div class="soal"><p>Bidang vertikal persegi panjang lebar 2 m, tinggi 3 m, tepi atas di kedalaman 1 m. Dengan \(\rho = 1000\) dan \(g = 9{,}8\), hitung (a) gaya hidrostatik total; (b) kedalaman pusat tekanan; (c) jarak pusat tekanan dari dasar pelat; (d) mengapa pusat tekanan berbeda dari centroid.</p></div>
+    <ol class="steps">
+      <li><b>Langkah 1.</b> Luas dan kedalaman centroid: \(A = bH = 6\ \text{m}^2\), \(h_c = 1 + \tfrac32 = 2{,}5\) m.</li>
+      <li><b>Langkah 2.</b> Gaya resultan: \(F_R = \rho gh_cA = 1000(9{,}8)(2{,}5)(6) = \) <span class="hasil">147000 N</span>.</li>
+      <li><b>Langkah 3.</b> \(I_G = \dfrac{bH^3}{12} = \dfrac{2(27)}{12} = 4{,}5\ \text{m}^4\), lalu \(h_{cp} = h_c + \dfrac{I_G}{Ah_c} = 2{,}5 + \dfrac{4{,}5}{6(2{,}5)} = \) <span class="hasil">2,8 m</span>.</li>
+      <li><b>Langkah 4.</b> Dasar pelat di \(h_0 + H = 4\) m, jadi \(d = 4 - 2{,}8 = \) <span class="hasil">1,2 m</span>.</li>
+      <li><b>Langkah 5.</b> Pusat tekanan lebih dalam daripada centroid karena tekanan \(\rho gh\) naik ke bawah; bagian bawah pelat didorong lebih kuat. Cek di Lab pintu air, Bab 5.</li>
+    </ol>
+    <div class="olim-ctl"><button class="btn" type="button" data-step>Buka langkah 1</button><button class="btn ghost" type="button" data-all>Tampilkan semua</button></div>
+  </article>
+
+  <article class="olim"><header><span class="on">4</span><h4>Balok terapung diberi beban</h4><span class="topic">Archimedes dan beban tambahan</span></header>
+    <div class="soal"><p>Balok homogen \(20 \times 20 \times 50\) cm, massa jenis 600 kg/m³, mengapung vertikal di air. Hitung (a) massa balok; (b) volume tercelup; (c) persen tercelup; (d) tinggi terendam; (e) massa beban maksimum sebelum bagian atas balok tepat mencapai permukaan air.</p></div>
+    <ol class="steps">
+      <li><b>Langkah 1.</b> \(V_b = 0{,}2(0{,}2)(0{,}5) = 0{,}02\ \text{m}^3\), \(m_b = 600(0{,}02) = \) <span class="hasil">12 kg</span>.</li>
+      <li><b>Langkah 2.</b> Mengapung berarti \(\rho_fgV_s = m_bg\), jadi \(V_s = \dfrac{12}{1000} = \) <span class="hasil">0,012 m³</span>.</li>
+      <li><b>Langkah 3.</b> Persen tercelup \(100V_s/V_b = 100(0{,}012/0{,}02) = \) <span class="hasil">60%</span>.</li>
+      <li><b>Langkah 4.</b> Luas alas \(A = 0{,}04\ \text{m}^2\), jadi \(h_s = V_s/A = 0{,}012/0{,}04 = \) <span class="hasil">0,30 m</span>.</li>
+      <li><b>Langkah 5.</b> Saat tepat terendam penuh, gaya apung maksimum \(\rho_fgV_b\) menopang total massa \(\rho_fV_b = 20\) kg. Beban maksimum \(20 - 12 = \) <span class="hasil">8 kg</span>. Coba di Lab balok terapung, Bab 6: geser beban ke 8 kg.</li>
+    </ol>
+    <div class="olim-ctl"><button class="btn" type="button" data-step>Buka langkah 1</button><button class="btn ghost" type="button" data-all>Tampilkan semua</button></div>
+  </article>
+
+  <article class="olim"><header><span class="on">5</span><h4>Tangki air dipercepat horizontal</h4><span class="topic">gravitasi efektif</span></header>
+    <div class="soal"><p>Tangki terbuka berisi air dipercepat horizontal \(a_1 = 2{,}5\ \text{m/s}^2\). Panjang tangki searah percepatan \(L = 2{,}4\) m, \(g = 10\). Tentukan (a) sudut kemiringan permukaan; (b) selisih tinggi kedua ujung; (c) ujung mana yang lebih tinggi; (d) sudut dan beda tinggi bila percepatan dilipatduakan.</p></div>
+    <ol class="steps">
+      <li><b>Langkah 1, arah.</b> Dalam kerangka tangki, percepatan semu fluida ke kiri. Gravitasi efektif serong ke bawah-kiri; permukaan bebas tegak lurus padanya, jadi <span class="hasil">lebih tinggi di kiri</span>, berlawanan arah percepatan.</li>
+      <li><b>Langkah 2, sudut.</b> \(\tan\theta_1 = a_1/g = 2{,}5/10 = 0{,}25\), \(\theta_1 = \tan^{-1}(0{,}25) = \) <span class="hasil">14,04°</span>.</li>
+      <li><b>Langkah 3, selisih tinggi.</b> \(\Delta h_1 = L\tan\theta_1 = \dfrac{a_1L}{g} = \dfrac{2{,}5(2{,}4)}{10} = \) <span class="hasil">0,60 m</span>.</li>
+      <li><b>Langkah 4, percepatan 5 m/s².</b> \(\theta_2 = \tan^{-1}(5/10) = \) <span class="hasil">26,57°</span>, \(\Delta h_2 = 5(2{,}4)/10 = \) <span class="hasil">1,20 m</span>.</li>
+      <li><b>Interpretasi.</b> Beda tinggi jadi dua kali, tetapi sudutnya <em>tidak</em> dua kali, karena \(\theta = \arctan(a/g)\), bukan \(\theta \propto a\).</li>
+    </ol>
+    <div class="olim-ctl"><button class="btn" type="button" data-step>Buka langkah 1</button><button class="btn ghost" type="button" data-all>Tampilkan semua</button></div>
+    <div class="jebak" hidden data-trap><svg width="30" height="30" aria-hidden="true"><use href="#i-buoy"/></svg><div><b>Catatan asumsi.</b> \(\Delta h\) adalah beda tinggi ujung kiri dan kanan. Tanpa data tinggi air awal dan dinding, kita tidak bisa memastikan air tidak tumpah atau dasar tidak terbuka. Soal mengandaikan keduanya tidak terjadi.</div></div>
+  </article>
+
+  <article class="olim"><header><span class="on">6</span><h4>Kapilaritas</h4><span class="topic">tegangan permukaan</span></header>
+    <div class="soal"><p>Tabung kapiler radius 0,5 mm di dalam air, \(\sigma = 0{,}072\) N/m, \(\rho = 1000\), \(\theta = 0^\circ\), \(g = 10\). Hitung (a) tinggi air yang naik; (b) perubahannya jika radius jadi setengah; (c) jelaskan mekanisme kenaikannya.</p></div>
+    <ol class="steps">
+      <li><b>Langkah 1.</b> \(h_1 = \dfrac{2\sigma\cos\theta}{\rho gr_1} = \dfrac{2(0{,}072)(1)}{1000(10)(0{,}0005)} = \dfrac{0{,}144}{5} = 0{,}0288\ \text{m} = \) <span class="hasil">2,88 cm</span>.</li>
+      <li><b>Langkah 2.</b> \(h \propto 1/r\) bila parameter lain tetap. Radius setengah, maka \(h_2 = 2h_1 = \) <span class="hasil">5,76 cm</span>.</li>
+      <li><b>Langkah 3.</b> Adhesi (pembasahan) membentuk meniskus cekung. Komponen vertikal tegangan permukaan di tepi menarik cairan ke atas; kolom berhenti naik saat gaya itu seimbang dengan berat kolom.</li>
+    </ol>
+    <div class="olim-ctl"><button class="btn" type="button" data-step>Buka langkah 1</button><button class="btn ghost" type="button" data-all>Tampilkan semua</button></div>
+  </article>
+
+  <article class="olim"><header><span class="on">7</span><h4>Pancaran air dari tangki</h4><span class="topic">Torricelli dan parabola</span></header>
+    <div class="soal"><p>Tangki terbuka punya lubang kecil \(h = 1{,}25\) m di bawah permukaan dan \(H = 0{,}80\) m di atas tanah. Tentukan (a) kelajuan keluar; (b) waktu ke tanah; (c) jarak horizontal; (d) jarak baru jika \(h\) dibuat empat kali lipat sementara \(H\) tetap.</p></div>
+    <ol class="steps">
+      <li><b>Langkah 1, Torricelli.</b> Kedua titik terbuka ke atmosfer dan tangki jauh lebih lebar dari lubang: \(gh = \tfrac12v_0^2\), jadi \(v_0 = \sqrt{2(10)(1{,}25)} = \sqrt{25} = \) <span class="hasil">5 m/s</span>.</li>
+      <li><b>Langkah 2, gerak vertikal.</b> Air keluar horizontal (\(v_{0y} = 0\)): \(H = \tfrac12gt^2\), \(t = \sqrt{2(0{,}8)/10} = \sqrt{0{,}16} = \) <span class="hasil">0,4 s</span>.</li>
+      <li><b>Langkah 3, gerak horizontal.</b> \(x = v_0t = 5(0{,}4) = \) <span class="hasil">2 m</span>.</li>
+      <li><b>Langkah 4, empat kali kedalaman.</b> \(h' = 5\) m, \(v_0' = \sqrt{2(10)(5)} = 10\) m/s. Waktu tetap 0,4 s karena \(H\) tidak berubah. \(x' = 10(0{,}4) = \) <span class="hasil">4 m</span>.</li>
+      <li><b>Interpretasi.</b> \(x = 2\sqrt{hH}\), jadi pada \(H\) tetap \(x \propto \sqrt h\). Empat kali kedalaman memberi dua kali jangkauan. Cek di Lab pancaran tangki, Bab 10.</li>
+    </ol>
+    <div class="olim-ctl"><button class="btn" type="button" data-step>Buka langkah 1</button><button class="btn ghost" type="button" data-all>Tampilkan semua</button></div>
+    <div class="jebak" hidden data-trap><svg width="30" height="30" aria-hidden="true"><use href="#i-buoy"/></svg><div><b>Jebakan soal 7.</b> \(h\) dipakai untuk kelajuan (Torricelli), \(H\) untuk waktu jatuh. Kalau keduanya tertukar, jangkauan kebetulan tetap benar karena \(x = 2\sqrt{hH}\) simetris, tetapi kelajuan dan waktunya salah.</div></div>
+  </article>
+
+  <article class="olim"><header><span class="on">8</span><h4>Venturimeter horizontal</h4><span class="topic">kontinuitas dan Bernoulli</span></header>
+    <div class="soal"><p>Air mengalir melalui venturimeter ideal dengan \(A_1 = 8\ \text{cm}^2\), \(A_2 = 2\ \text{cm}^2\), \(P_1 - P_2 = 15000\) Pa, \(\rho = 1000\). Tentukan (a) rasio \(v_1 : v_2\); (b) \(v_1\); (c) \(v_2\); (d) debit dalam m³/s; (e) debit dalam L/s.</p></div>
+    <ol class="steps">
+      <li><b>Langkah 1, kontinuitas.</b> \(A_1v_1 = A_2v_2 \Rightarrow v_2 = \tfrac82v_1 = 4v_1\), jadi <span class="hasil">\(v_1 : v_2 = 1 : 4\)</span>.</li>
+      <li><b>Langkah 2, Bernoulli horizontal.</b> \(\Delta P = \tfrac12\rho(v_2^2 - v_1^2) = \tfrac12(1000)(16v_1^2 - v_1^2) = 7500v_1^2\). Dari \(15000 = 7500v_1^2\): \(v_1^2 = 2\), <span class="hasil">\(v_1 = 1{,}414\) m/s</span>.</li>
+      <li><b>Langkah 3.</b> <span class="hasil">\(v_2 = 4\sqrt2 = 5{,}657\) m/s</span>.</li>
+      <li><b>Langkah 4, debit.</b> \(A_2 = 2\times10^{-4}\ \text{m}^2\) (ubah ke SI dulu!), \(Q = A_2v_2 = (2\times10^{-4})(5{,}657) = \) <span class="hasil">\(1{,}131\times10^{-3}\ \text{m}^3/\text{s} = 1{,}131\ \text{L/s}\)</span>.</li>
+    </ol>
+    <div class="olim-ctl"><button class="btn" type="button" data-step>Buka langkah 1</button><button class="btn ghost" type="button" data-all>Tampilkan semua</button></div>
+  </article>
+
+  <article class="olim"><header><span class="on">9</span><h4>Bola jatuh dalam fluida kental</h4><span class="topic">Stokes, Archimedes, Newton</span></header>
+    <div class="soal"><p>Bola logam radius \(r = 0{,}5\) mm, \(\rho_b = 7800\), di dalam cairan \(\rho_f = 1200\) kg/m³, \(\mu = 0{,}8\) Pa·s, \(g = 10\). Tentukan (a) berat bola; (b) gaya apung; (c) kecepatan terminal Stokes; (d) Reynolds bola berdasarkan \(2r\); (e) validitas model Stokes.</p></div>
+    <ol class="steps">
+      <li><b>Langkah 1, volume.</b> \(V = \tfrac43\pi r^3 = \tfrac43\pi(0{,}0005)^3 \approx 5{,}236\times10^{-10}\ \text{m}^3\).</li>
+      <li><b>Langkah 2, berat dan apung.</b> \(W = \rho_bVg \approx\) <span class="hasil">\(4{,}084\times10^{-5}\) N</span>, \(F_A = \rho_fVg \approx\) <span class="hasil">\(6{,}283\times10^{-6}\) N</span>.</li>
+      <li><b>Langkah 3, terminal.</b> \(v_t = \dfrac{2r^2(\rho_b - \rho_f)g}{9\mu} = \dfrac{2(0{,}0005)^2(6600)(10)}{9(0{,}8)} \approx\) <span class="hasil">0,00458 m/s</span>.</li>
+      <li><b>Langkah 4, Reynolds.</b> \(D = 2r = 0{,}001\) m: \(Re = \dfrac{\rho_fv_tD}{\mu} = \dfrac{1200(0{,}00458)(0{,}001)}{0{,}8} \approx\) <span class="hasil">0,00688</span>.</li>
+      <li><b>Langkah 5.</b> \(Re \ll 1\), jadi hambat Stokes konsisten dengan hasilnya. Cek di Lab bola jatuh, Bab 11.</li>
+    </ol>
+    <div class="olim-ctl"><button class="btn" type="button" data-step>Buka langkah 1</button><button class="btn ghost" type="button" data-all>Tampilkan semua</button></div>
+  </article>
+
+  <article class="olim"><header><span class="on">10</span><h4>Radius dan panjang pipa berubah</h4><span class="topic">Poiseuille</span></header>
+    <div class="soal"><p>Dalam aliran laminar Poiseuille, radius pipa jadi separuh dan panjangnya dua kali, sementara \(\Delta P\) dan \(\mu\) tetap. Tentukan (a) rasio debit akhir dan awal; (b) faktor perubahan hambatan hidraulik; (c) debit baru jika debit awal 64 mL/s.</p></div>
+    <ol class="steps">
+      <li><b>Langkah 1.</b> Dari Poiseuille \(Q \propto R^4/L\): \(\dfrac{Q_2}{Q_1} = \dfrac{(R_1/2)^4/(2L_1)}{R_1^4/L_1} = \dfrac1{16}\cdot\dfrac12 = \) <span class="hasil">1/32</span>.</li>
+      <li><b>Langkah 2.</b> \(R_h = 8\mu L/(\pi R^4)\): \(\dfrac{R_{h2}}{R_{h1}} = 2(16) = \) <span class="hasil">32</span>.</li>
+      <li><b>Langkah 3.</b> \(Q_2 = Q_1/32 = 64/32 = \) <span class="hasil">2 mL/s</span>. Cek di Lab profil Poiseuille, Bab 11: radius 0,5 dan panjang 2.</li>
+    </ol>
+    <div class="olim-ctl"><button class="btn" type="button" data-step>Buka langkah 1</button><button class="btn ghost" type="button" data-all>Tampilkan semua</button></div>
+  </article>
+</section>
+
+<!-- ================= BAB 17 ================= -->
+<section class="bab col" id="bab-17" data-title="Catatan belajar">
+  <div class="bab-head"><div class="bab-num" aria-hidden="true">17</div>
+    <h2>Catatan belajar, pemeriksaan jawaban, dan referensi</h2>
+    <div class="bab-meta"><button class="got" type="button" data-bab="17" aria-pressed="false">Sudah paham</button></div></div>
+  <h3><span class="sub">17.1</span>Urutan belajar efektif</h3>
+  <ol>
+    <li>Kuasai massa jenis, tekanan, dan hidrostatika sebelum menghitung sistem berlapis atau manometer.</li>
+    <li>Kuasai keseimbangan gaya sebelum Archimedes dan tekanan gerbang.</li>
+    <li>Kuasai debit dan kontinuitas sebelum Bernoulli dan venturimeter.</li>
+    <li>Untuk soal kompleks, tulis asumsi model: tunak, tak termampatkan, tekanan atmosfer sama, nilai \(g\), ada atau tidaknya gesekan.</li>
+    <li>Setelah dapat angka, periksa dimensi dan masuk akalnya: tekanan bertambah ke bawah, laju membesar di pipa sempit jika debit tetap, volume tercelup tidak melebihi volume benda untuk benda mengapung tanpa penopang.</li>
+  </ol>
+  <h3><span class="sub">17.2</span>Format DIKETAHUI, DITANYA, JAWAB, CEK</h3>
+  <dl class="dtj dtj-card">
+    <dt>DIKETAHUI</dt><dd>Tulis semua data dalam satuan SI dan sketsa arah yang kamu pilih.</dd>
+    <dt>DITANYA</dt><dd>Sebut besaran target dan satuannya.</dd>
+    <dt>JAWAB</dt><dd>Tulis hukum fisikanya dulu, jelaskan asumsi, turunkan bentuk yang diperlukan, lalu substitusi dan simpulkan.</dd>
+    <dt>CEK</dt><dd>Hitung ulang pembulatan, tanda, dimensi, dan interpretasi fisiknya.</dd>
+  </dl>
+  <h3><span class="sub">17.3</span>Catatan koreksi dari rangkuman sebelumnya</h3>
+  <ul>
+    <li>Pada bidang datar terendam, \(F_R = \rho gh_cA\) memakai <em>kedalaman centroid</em>, sedangkan lokasi gayanya di <em>pusat tekanan</em>. Keduanya tidak boleh disamakan.</li>
+    <li>Rumus manometer dua fluida butuh geometri yang cocok; lebih aman menelusuri tekanan per segmen.</li>
+    <li>Rumus kapilaritas butuh sudut kontak dan model meniskus yang sesuai.</li>
+    <li>Stokes dan Poiseuille harus disertai syarat aliran sangat lambat atau laminar.</li>
+    <li>\(x = 2\sqrt{hH}\) berlaku bila model Torricelli dan gerak parabola ideal terpenuhi.</li>
+    <li>Tinggi kolom air pada tangki dipercepat bisa berubah dan tumpah. \(\Delta h = aL/g\) menggambarkan kondisi setimbang relatif terhadap tangki dengan asumsi fluida tetap tertampung.</li>
+    <li>Simbol \(\gamma\) di buku lain kadang dipakai untuk tegangan permukaan. Di modul ini \(\gamma\) berat jenis dan \(\sigma\) tegangan permukaan.</li>
+  </ul>
+  <h3><span class="sub">17.4</span>Sumber dan atribusi</h3>
+  <p>Modul ini sintesis materi dan soal latihan, bukan reproduksi buku teks atau kunci jawaban resmi ITB. Topik fluida sebagai bagian FI1101 dikonfirmasi dari <em>Panduan LCE FI1101 Fisika Dasar I Semester 1 2026/2027</em>. Dokumen <em>Soal Pretest Fisika ITB 2025</em> memuat contoh uji dimensi modulus bulk, fluida berlapis air-raksa, dan aliran ideal/Bernoulli. Pengayaan mengikuti cakupan umum literatur Fisika Universitas dan Mekanika Fluida.</p>
+  <ol class="ref">
+    <li>OpenStax, <em>University Physics Volume 1</em>, bab Fluid Mechanics. <a href="https://openstax.org/details/books/university-physics-volume-1" target="_blank" rel="noopener">openstax.org</a></li>
+    <li>OpenStax, <em>College Physics</em>, topik Fluid Statics dan Fluid Dynamics. <a href="https://openstax.org/details/books/college-physics" target="_blank" rel="noopener">openstax.org</a></li>
+    <li>Frank M. White, <em>Fluid Mechanics</em>, untuk gaya bidang terendam, aliran pipa, dan mesin fluida.</li>
+    <li>R. C. Hibbeler, <em>Fluid Mechanics</em>, untuk latihan teknik gaya tekanan dan sistem fluida.</li>
+    <li>Bahan FI1101 dari arsip belajar pribadi.</li>
+  </ol>
+</section>
+
+<footer class="end col">
+  <div class="big">Kamu sudah di dasar kolom.</div>
+  <p>Baca teori, kerjakan soal, lalu cek penurunan rumusnya. Naik lagi ke bab yang belum ditandai paham.</p>
+  <p><a href="#top" id="toTop">Kembali ke permukaan</a></p>
+  <p>Made by <b style="color:var(--tide)">rasyiiq</b></p>
+</footer>
+</main>
+<script>
+(function () {
+'use strict';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const fmt = (x, d = 0) => Number(x).toLocaleString('id-ID', { minimumFractionDigits: d, maximumFractionDigits: d });
+const sci = (x, d = 3) => { if (x === 0) return '0'; const e = Math.floor(Math.log10(Math.abs(x))); const m = x / Math.pow(10, e); return fmt(m, d) + ' × 10' + sup(e); };
+const sup = n => String(n).split('').map(c => ({ '-': '⁻', '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹' })[c]).join('');
+const typeset = el => { if (window.MathJax && MathJax.typesetPromise) { MathJax.typesetPromise([el]).catch(() => {}); } };
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } }
+};
+
+/* ---------- colors (re-read on theme change) ---------- */
+let C = {};
+function readColors() {
+  const cs = getComputedStyle(document.documentElement);
+  const g = n => cs.getPropertyValue(n).trim();
+  C = { ink: g('--ink'), bg: g('--bg'), tide: g('--tide'), tide2: g('--tide-2'), lab: g('--lab'), labInk: g('--lab-ink'), labLine: g('--lab-line'),
+    buoy: g('--buoy'), kelp: g('--kelp'), flare: g('--flare') };
+  C.water = 'rgba(79,182,212,0.30)'; C.waterHi = 'rgba(123,208,230,0.55)'; C.dim = 'rgba(221,241,246,0.55)'; C.faint = 'rgba(221,241,246,0.22)';
+  C.steel = '#A9B8C2';
+  if (window.__heroRebuild) window.__heroRebuild();
+  sims.forEach(s => s.dirty = true);
+}
+new MutationObserver(readColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readColors);
+
+/* ---------- canvas helpers ---------- */
+const FONT = '"Bricolage Grotesque", system-ui, sans-serif';
+function arrow(ctx, x1, y1, x2, y2, col, w = 2, head = 8) {
+  const a = Math.atan2(y2 - y1, x2 - x1), len = Math.hypot(x2 - x1, y2 - y1);
+  if (len < 1) return;
+  const hh = Math.min(head, len * 0.6);
+  ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 - Math.cos(a) * hh * 0.8, y2 - Math.sin(a) * hh * 0.8); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - Math.cos(a - 0.45) * hh, y2 - Math.sin(a - 0.45) * hh);
+  ctx.lineTo(x2 - Math.cos(a + 0.45) * hh, y2 - Math.sin(a + 0.45) * hh); ctx.closePath(); ctx.fill();
+}
+function label(ctx, s, x, y, col, size = 12, align = 'left', weight = 600, base = 'middle') {
+  ctx.font = `${weight} ${size}px ${FONT}`; ctx.fillStyle = col; ctx.textAlign = align; ctx.textBaseline = base; ctx.fillText(s, x, y);
+}
+function dimV(ctx, x, y1, y2, txt, col) {
+  ctx.strokeStyle = col; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x, y2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x - 5, y1); ctx.lineTo(x + 5, y1); ctx.moveTo(x - 5, y2); ctx.lineTo(x + 5, y2); ctx.stroke();
+  if (txt) label(ctx, txt, x + 8, (y1 + y2) / 2, col, 12);
+}
+function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); }
+const wave = (x, t, amp = 3) => amp * (Math.sin(x * 0.035 + t * 1.6) * 0.6 + Math.sin(x * 0.09 - t * 2.3) * 0.4);
+const val = id => { const el = document.getElementById(id); return el ? +el.value.split(',')[0] : 0; };
+
+/* ---------- simulation engine ---------- */
+const sims = [];
+function sim(name, draw, ids, readout) {
+  const cv = document.getElementById('c-' + name); if (!cv) return;
+  const s = { cv, ctx: cv.getContext('2d'), w: 0, h: 0, draw, visible: false, st: {}, dirty: true, readout, t: 0 };
+  const resize = () => {
+    const r = cv.getBoundingClientRect(), d = Math.min(window.devicePixelRatio || 1, 2);
+    s.w = r.width; s.h = r.height; cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d);
+    s.ctx.setTransform(d, 0, 0, d, 0, 0); s.dirty = true;
+  };
+  new ResizeObserver(resize).observe(cv); resize();
+  new IntersectionObserver(es => es.forEach(e => { s.visible = e.isIntersecting; s.dirty = true; }), { rootMargin: '80px' }).observe(cv);
+  ids.forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('input', () => { s.dirty = true; s.readout && s.readout(); }); });
+  readout && readout();
+  sims.push(s);
+}
+function out(id, txt) { const o = document.getElementById(id); if (o) o.textContent = txt; }
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  for (const s of sims) {
+    if (!s.visible || !s.w) continue;
+    if (RM && !s.dirty) continue;
+    if (!RM) s.t += dt;
+    s.ctx.clearRect(0, 0, s.w, s.h);
+    s.draw(s.ctx, s.w, s.h, s.t, RM ? 1 : dt, s.st);
+    s.dirty = false;
+  }
+  requestAnimationFrame(loop);
+}
+
+/* ============ 1. HYDROSTATIC TANK ============ */
+const FLUIDCOL = { 1000: 'rgba(79,182,212,0.34)', 800: 'rgba(233,169,42,0.30)', 1025: 'rgba(46,139,102,0.36)', 13600: 'rgba(200,214,224,0.55)' };
+sim('hydro', (c, w, h, t, dt, st) => {
+  const hd = val('hy-h'), rho = val('hy-f');
+  const narrow = w < 560;
+  const x0 = 46, x1 = narrow ? w * 0.6 : w * 0.52, ys = 34, yb = h - 22, k = (yb - ys) / 10;
+  // ruler
+  for (let m = 0; m <= 10; m += 2) { const y = ys + m * k; c.strokeStyle = C.faint; c.lineWidth = 1; c.beginPath(); c.moveTo(x0 - 8, y); c.lineTo(x0, y); c.stroke(); label(c, m + ' m', x0 - 12, y, C.dim, 11, 'right'); }
+  // fluid
+  c.beginPath(); c.moveTo(x0, yb);
+  for (let x = x0; x <= x1; x += 4) c.lineTo(x, ys + wave(x, t));
+  c.lineTo(x1, yb); c.closePath();
+  const gr = c.createLinearGradient(0, ys, 0, yb); gr.addColorStop(0, FLUIDCOL[rho]); gr.addColorStop(1, rho === 13600 ? 'rgba(150,165,178,0.75)' : 'rgba(11,47,69,0.0)');
+  c.fillStyle = FLUIDCOL[rho]; c.fill(); c.fillStyle = gr; c.fill();
+  // walls
+  c.strokeStyle = C.labInk; c.lineWidth = 3; c.beginPath(); c.moveTo(x0, ys - 16); c.lineTo(x0, yb); c.lineTo(x1, yb); c.lineTo(x1, ys - 16); c.stroke();
+  label(c, 'P₀ = 1 atm', x0 + 8, ys - 14, C.dim, 11);
+  // wall arrows, pushing outward on the right wall
+  for (let m = 1; m <= 10; m++) { const y = ys + m * k - 2; const L = 4 + 26 * m / 10; arrow(c, x1 - L - 2, y, x1 - 2, y, 'rgba(221,241,246,0.35)', 1.5, 5); }
+  // bubbles
+  for (let i = 0; i < 9; i++) { const ph = (t * 0.08 * (1 + i % 3 * 0.4) + i * 0.137) % 1; const bx = x0 + 20 + ((i * 53) % (x1 - x0 - 40)) + Math.sin(t * 2 + i) * 4; const by = yb - ph * (yb - ys); c.strokeStyle = 'rgba(221,241,246,' + (0.5 * (1 - ph)) + ')'; c.lineWidth = 1; c.beginPath(); c.arc(bx, by, 1.5 + i % 3, 0, 7); c.stroke(); }
+  // probe
+  st.y = st.y == null ? hd : st.y + (hd - st.y) * Math.min(1, dt * 6);
+  const py = ys + st.y * k, px = (x0 + x1) / 2;
+  c.setLineDash([4, 4]); c.strokeStyle = C.dim; c.lineWidth = 1; c.beginPath(); c.moveTo(x0, py); c.lineTo(x1, py); c.stroke(); c.setLineDash([]);
+  const rel = st.y / 10, L = 8 + 30 * rel + 1.5 * Math.sin(t * 4);
+  [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([a, b]) => arrow(c, px + a * (L + 10), py + b * (L + 10), px + a * 9, py + b * 9, C.buoy, 2, 6));
+  c.fillStyle = C.buoy; c.beginPath(); c.arc(px, py, 6, 0, 7); c.fill();
+  c.strokeStyle = C.labInk; c.lineWidth = 1.5; c.beginPath(); c.moveTo(px, ys - 20); c.lineTo(px, py - 6); c.stroke();
+  label(c, 'h = ' + fmt(st.y, 1) + ' m', x0 + 8, py - 10, C.labInk, 12);
+  // absolute pressure bar
+  const bx = x1 + (narrow ? 26 : 60), bw = 26, Pmax = 1500;
+  const Pabs = 101325 + rho * 9.8 * st.y;
+  rr(c, bx, ys, bw, yb - ys, 6); c.strokeStyle = C.faint; c.lineWidth = 1; c.stroke();
+  const fh = (yb - ys) * Pabs / 1000 / Pmax;
+  rr(c, bx + 3, yb - fh, bw - 6, fh - 3, 4); c.fillStyle = C.buoy; c.fill();
+  for (let p = 0; p <= Pmax; p += 250) { const y = yb - (yb - ys) * p / Pmax; label(c, p + (p === Pmax ? ' kPa' : ''), bx + bw + 6, y, C.dim, 10); }
+  label(c, 'P_abs', bx, ys - 14, C.dim, 11);
+  const ay = yb - (yb - ys) * 101.325 / Pmax; c.strokeStyle = C.labInk; c.beginPath(); c.moveTo(bx - 4, ay); c.lineTo(bx + bw + 4, ay); c.stroke();
+}, ['hy-h', 'hy-f'], () => {
+  const hd = val('hy-h'), rho = val('hy-f'), pg = rho * 9.8 * hd, pa = 101325 + pg;
+  out('o-hy-h', fmt(hd, 1) + ' m'); out('r-hy-pg', fmt(pg) + ' Pa'); out('r-hy-pa', fmt(pa) + ' Pa'); out('r-hy-atm', fmt(pa / 101325, 2) + ' atm');
+});
+
+/* ============ 2. HYDRAULIC JACK ============ */
+sim('jack', (c, w, h, t, dt, st) => {
+  const F1 = val('jk-f1'), A1 = val('jk-a1'), A2 = val('jk-a2'), F2 = F1 * A2 / A1;
+  const maxW = Math.min(w * 0.36, 210), s = maxW / Math.sqrt(400);
+  const wl = Math.max(12, s * Math.sqrt(A1)), wr = Math.max(28, s * Math.sqrt(A2));
+  const cxL = w * 0.28, cxR = w * 0.64, yTop = 60, yCh = h - 76, yB = h - 36;
+  const ph = RM ? 0.5 : (1 - Math.cos(t * 1.7)) / 2;
+  const x1 = 70 * ph;
+  const yL = 120 + x1, yR = 120 - x1 * A1 / A2;
+  c.fillStyle = C.water;
+  c.fillRect(cxL - wl / 2, yL, wl, yCh - yL); c.fillRect(cxR - wr / 2, yR, wr, yCh - yR); c.fillRect(cxL - wl / 2, yCh, cxR + wr / 2 - (cxL - wl / 2), yB - yCh);
+  // flow streaks in channel
+  c.strokeStyle = C.waterHi; c.lineWidth = 2;
+  const vflow = Math.sin(t * 1.7);
+  for (let i = 0; i < 6; i++) { const xx = cxL + ((i / 6 + (RM ? 0 : t * 0.25 * Math.sign(vflow || 1))) % 1 + 1) % 1 * (cxR - cxL); c.globalAlpha = Math.abs(vflow); c.beginPath(); c.moveTo(xx, (yCh + yB) / 2); c.lineTo(xx + 14 * Math.sign(vflow), (yCh + yB) / 2); c.stroke(); }
+  c.globalAlpha = 1;
+  // walls
+  c.strokeStyle = C.labInk; c.lineWidth = 2.5; c.beginPath();
+  c.moveTo(cxL - wl / 2, yTop); c.lineTo(cxL - wl / 2, yB); c.lineTo(cxR + wr / 2, yB); c.lineTo(cxR + wr / 2, yTop);
+  c.moveTo(cxL + wl / 2, yTop); c.lineTo(cxL + wl / 2, yCh); c.lineTo(cxR - wr / 2, yCh); c.lineTo(cxR - wr / 2, yTop); c.stroke();
+  // pistons
+  c.fillStyle = C.steel; c.fillRect(cxL - wl / 2 + 2, yL - 8, wl - 4, 8); c.fillRect(cxR - wr / 2 + 2, yR - 8, wr - 4, 8);
+  c.fillRect(cxL - 2, yL - 40, 4, 32);
+  // load on big piston, size by log F2
+  const lw = Math.min(wr - 6, 24 + 18 * Math.log10(F2 / 10)), lh = 14 + 10 * Math.log10(F2 / 10);
+  rr(c, cxR - lw / 2, yR - 8 - lh, lw, lh, 4); c.fillStyle = 'rgba(233,169,42,0.25)'; c.fill(); c.strokeStyle = C.buoy; c.lineWidth = 1.5; c.stroke();
+  label(c, 'beban', cxR, yR - 8 - lh / 2, C.buoy, 11, 'center');
+  // forces
+  const l1 = 18 + 34 * F1 / 200; arrow(c, cxL, yL - 44 - l1, cxL, yL - 44, C.buoy, 3, 9);
+  label(c, 'F₁ = ' + fmt(F1) + ' N', cxL - wl / 2 - 8, yL - 44 - l1 / 2, C.labInk, 12, 'right');
+  const l2 = 20 + 40 * Math.log10(F2 / 10) / Math.log10(8000 / 10);
+  arrow(c, cxR + wr / 2 + 16, yR + 6, cxR + wr / 2 + 16, yR + 6 - l2, C.buoy, 3, 9);
+  label(c, 'F₂ = ' + fmt(F2) + ' N', cxR + wr / 2 + 26, yR + 6 - l2 / 2, C.buoy, 13, 'left', 700);
+  label(c, 'A₁', cxL, yTop - 12, C.dim, 12, 'center'); label(c, 'A₂', cxR, yTop - 12, C.dim, 12, 'center');
+  // pressure equal note
+  label(c, 'tambahan tekanan sama di seluruh cairan: ' + fmt(F1 / (A1 * 1e-4) / 1000, 1) + ' kPa', (cxL + cxR) / 2, yB + 16, C.dim, 11, 'center');
+}, ['jk-f1', 'jk-a1', 'jk-a2'], () => {
+  const F1 = val('jk-f1'), A1 = val('jk-a1'), A2 = val('jk-a2');
+  out('o-jk-f1', fmt(F1) + ' N'); out('o-jk-a1', fmt(A1) + ' cm²'); out('o-jk-a2', fmt(A2) + ' cm²');
+  out('r-jk-f2', fmt(F1 * A2 / A1, 0) + ' N'); out('r-jk-k', fmt(A2 / A1, 1) + '×'); out('r-jk-x', fmt(10 * A1 / A2, 2) + ' cm');
+});
+
+/* ============ 3. MANOMETER ============ */
+sim('mano', (c, w, h, t, dt, st) => {
+  const dp = val('mn-dp') * 1000, rho = val('mn-f');
+  const hm = dp / (rho * 9.8), hmax = 40000 / (rho * 9.8), K = (h * 0.56) / hmax;
+  st.d = st.d == null ? hm : st.d + (hm - st.d) * Math.min(1, dt * 3);
+  const narrow = w < 520;
+  const cx = narrow ? w * 0.62 : w * 0.58, sep = 92, tw = 16, yTop = 26, yBot = h - 30, y0 = h * 0.56;
+  const xl = cx - sep / 2, xr = cx + sep / 2;
+  const half = st.d * K / 2 + (RM ? 0 : Math.sin(t * 5) * 0.6);
+  const yl = y0 + half, yr = y0 - half;
+  const col = FLUIDCOL[rho] || C.water;
+  // fluid in U
+  c.fillStyle = col.replace(/0\.\d+\)$/, '0.7)');
+  c.fillRect(xl - tw / 2, yl, tw, yBot - yl - 10); c.fillRect(xr - tw / 2, yr, tw, yBot - yr - 10);
+  c.beginPath(); c.arc(cx, yBot - 10, sep / 2 + tw / 2, 0, Math.PI); c.arc(cx, yBot - 10, sep / 2 - tw / 2, Math.PI, 0, true); c.closePath(); c.fill();
+  // tube outline
+  c.strokeStyle = C.labInk; c.lineWidth = 2;
+  c.beginPath(); c.moveTo(xl - tw / 2, yTop + 30); c.lineTo(xl - tw / 2, yBot - 10); c.arc(cx, yBot - 10, sep / 2 + tw / 2, Math.PI, 0, true); c.lineTo(xr + tw / 2, yTop); c.stroke();
+  c.beginPath(); c.moveTo(xl + tw / 2, yTop + 30); c.lineTo(xl + tw / 2, yBot - 10); c.arc(cx, yBot - 10, sep / 2 - tw / 2, Math.PI, 0, true); c.lineTo(xr - tw / 2, yTop); c.stroke();
+  // gas tank
+  const gx = narrow ? 18 : w * 0.12, gw = narrow ? cx - sep / 2 - 60 : w * 0.26, gy = yTop + 6, gh = 90;
+  rr(c, gx, gy, gw, gh, 14); c.strokeStyle = C.labInk; c.stroke();
+  c.beginPath(); c.moveTo(gx + gw, yTop + 30 + 12); c.lineTo(xl - tw / 2, yTop + 30 + 12); c.moveTo(gx + gw, yTop + 30 - 4); c.lineTo(xl + tw / 2, yTop + 30 - 4); c.stroke();
+  c.fillStyle = 'rgba(221,241,246,0.04)'; c.fill();
+  const n = Math.round(18 + 10 * (dp + 20000) / 60000), sp = 0.6 + (dp + 20000) / 30000;
+  st.p = st.p || Array.from({ length: 40 }, (_, i) => ({ x: Math.random(), y: Math.random(), vx: Math.random() - 0.5, vy: Math.random() - 0.5 }));
+  for (let i = 0; i < n; i++) { const p = st.p[i]; p.x += p.vx * dt * sp * 0.6; p.y += p.vy * dt * sp * 0.6; if (p.x < 0 || p.x > 1) p.vx *= -1; if (p.y < 0 || p.y > 1) p.vy *= -1; p.x = clamp(p.x, 0, 1); p.y = clamp(p.y, 0, 1);
+    c.fillStyle = C.buoy; c.globalAlpha = 0.8; c.beginPath(); c.arc(gx + 10 + p.x * (gw - 20), gy + 10 + p.y * (gh - 20), 2.2, 0, 7); c.fill(); }
+  c.globalAlpha = 1;
+  label(c, 'gas', gx + 12, gy + gh + 14, C.dim, 12);
+  label(c, 'terbuka ke atmosfer', xr + tw / 2 + 6, yTop + 4, C.dim, 11);
+  arrow(c, xr, yTop - 14, xr, yTop + 6, C.dim, 1.5, 5);
+  // level difference
+  c.setLineDash([3, 4]); c.strokeStyle = C.dim; c.lineWidth = 1;
+  c.beginPath(); c.moveTo(xl - 20, yl); c.lineTo(xr + 34, yl); c.moveTo(xr - 10, yr); c.lineTo(xr + 34, yr); c.stroke(); c.setLineDash([]);
+  if (Math.abs(yl - yr) > 4) dimV(c, xr + 30, Math.min(yl, yr), Math.max(yl, yr), 'h = ' + fmt(Math.abs(st.d) * 100, 1) + ' cm', C.buoy);
+}, ['mn-dp', 'mn-f'], () => {
+  const dp = val('mn-dp'), rho = val('mn-f'), hm = dp * 1000 / (rho * 9.8);
+  out('o-mn-dp', fmt(dp, 1) + ' kPa'); out('r-mn-h', fmt(Math.abs(hm) * 100, 1) + ' cm');
+  out('r-mn-side', dp > 0 ? 'kaki terbuka' : dp < 0 ? 'kaki gas' : 'sama tinggi');
+});
+
+/* ============ 4. SUBMERGED GATE ============ */
+sim('gate', (c, w, h, t, dt, st) => {
+  const h0 = val('gt-h0'), H = val('gt-H'), b = val('gt-b');
+  const hc = h0 + H / 2, hcp = hc + (b * H * H * H / 12) / (b * H * hc);
+  const D = 7.5, ys = 30, k = (h - ys - 18) / D;
+  const xp = w * (w < 560 ? 0.62 : 0.56), x0 = 20;
+  const Y = d => ys + d * k;
+  // water
+  c.beginPath(); c.moveTo(x0, h - 18); for (let x = x0; x <= xp; x += 4) c.lineTo(x, ys + wave(x, t, 2.5)); c.lineTo(xp, h - 18); c.closePath();
+  const g = c.createLinearGradient(0, ys, 0, h); g.addColorStop(0, 'rgba(79,182,212,0.30)'); g.addColorStop(1, 'rgba(79,182,212,0.08)'); c.fillStyle = g; c.fill();
+  // dam wall
+  c.fillStyle = 'rgba(221,241,246,0.10)'; c.fillRect(xp, ys - 16, 22, h - ys);
+  // gate plate
+  c.fillStyle = C.labInk; c.fillRect(xp - 2, Y(h0), 8, H * k);
+  // pressure arrows
+  const kp = (xp - x0 - 40) / D, n = Math.max(6, Math.round(H * 4));
+  c.beginPath();
+  for (let i = 0; i <= n; i++) {
+    const d = h0 + H * i / n, L = d * kp * (1 + (RM ? 0 : 0.035 * Math.sin(t * 3 - i * 0.5)));
+    arrow(c, xp - 3 - L, Y(d), xp - 3, Y(d), 'rgba(123,208,230,0.85)', 1.6, 6);
+  }
+  c.strokeStyle = C.tide2; c.lineWidth = 1.2; c.beginPath(); c.moveTo(xp - 3 - h0 * kp, Y(h0)); c.lineTo(xp - 3 - (h0 + H) * kp, Y(h0 + H)); c.stroke();
+  // resultant
+  arrow(c, xp - 90, Y(hcp), xp - 6, Y(hcp), C.buoy, 4, 12);
+  label(c, 'F_R', xp - 96, Y(hcp), C.buoy, 13, 'right', 700);
+  // centroid & cp markers
+  c.strokeStyle = C.labInk; c.lineWidth = 2; c.beginPath(); c.arc(xp + 2, Y(hc), 6, 0, 7); c.stroke();
+  c.fillStyle = C.buoy; c.beginPath(); c.moveTo(xp + 2, Y(hcp) - 7); c.lineTo(xp + 9, Y(hcp)); c.lineTo(xp + 2, Y(hcp) + 7); c.lineTo(xp - 5, Y(hcp)); c.closePath(); c.fill();
+  // ruler & labels right
+  const rx = xp + 34;
+  for (let m = 0; m <= 7; m++) { c.strokeStyle = C.faint; c.beginPath(); c.moveTo(rx, Y(m)); c.lineTo(rx + 6, Y(m)); c.stroke(); label(c, m + ' m', rx + 10, Y(m), C.dim, 10); }
+  label(c, 'h_c = ' + fmt(hc, 2) + ' m', rx + 46, Y(hc), C.labInk, 12);
+  label(c, 'h_cp = ' + fmt(hcp, 2) + ' m', rx + 46, Y(hcp) + (Math.abs(hcp - hc) * k < 16 ? 14 : 0), C.buoy, 12, 'left', 700);
+}, ['gt-h0', 'gt-H', 'gt-b'], () => {
+  const h0 = val('gt-h0'), H = val('gt-H'), b = val('gt-b');
+  const hc = h0 + H / 2, A = b * H, F = 1000 * 9.8 * hc * A, hcp = hc + (b * H ** 3 / 12) / (A * hc);
+  out('o-gt-h0', fmt(h0, 1) + ' m'); out('o-gt-H', fmt(H, 1) + ' m'); out('o-gt-b', fmt(b, 1) + ' m');
+  out('r-gt-f', fmt(F) + ' N'); out('r-gt-hc', fmt(hc, 2) + ' m'); out('r-gt-hcp', fmt(hcp, 3) + ' m'); out('r-gt-d', fmt(h0 + H - hcp, 3) + ' m');
+});
+
+/* ============ 5. FLOATING BLOCK ============ */
+function floatState() {
+  const rb = val('fl-rb'), m = val('fl-m'), rf = val('fl-rf');
+  const Vb = 0.02, A = 0.04, H = 0.5, mb = rb * Vb, M = mb + m, Vs = M / rf;
+  let state, s, N = 0;
+  if (Math.abs(Vs - Vb) / Vb < 0.004) { state = 'melayang'; s = H; }
+  else if (Vs < Vb) { state = 'mengapung'; s = Vs / A; }
+  else { state = 'tenggelam'; s = H; N = M * 9.8 - rf * 9.8 * Vb; }
+  return { rb, m, rf, mb, M, s, H, state, N, FA: rf * 9.8 * Math.min(Vs, Vb), W: M * 9.8 };
+}
+sim('float', (c, w, h, t, dt, st) => {
+  const f = floatState();
+  const k = (h - 50) / 1.25, ys = 40 + 0.15 * k, yb = h - 14, cx = w * 0.42, bw = 0.2 * k * 1.15, bh = f.H * k;
+  let target;
+  if (f.state === 'mengapung') target = ys - (f.H - f.s) * k;
+  else if (f.state === 'melayang') target = ys + 0.25 * k;
+  else target = yb - bh;
+  if (st.y == null) { st.y = target; st.v = 0; }
+  st.v += ((target - st.y) * 28 - st.v * 4.5) * dt; st.y += st.v * dt;
+  if (f.state === 'tenggelam' && st.y > target) { st.y = target; st.v = 0; }
+  const bob = f.state === 'mengapung' && !RM ? Math.sin(t * 1.8) * 1.6 : 0;
+  const top = st.y + bob;
+  // water with ripples near block
+  const amp = 2 + Math.min(6, Math.abs(st.v) * 0.05);
+  const fc = FLUIDCOL[f.rf];
+  c.beginPath(); c.moveTo(14, yb);
+  for (let x = 14; x <= w - 14; x += 4) { const dx = Math.abs(x - cx); c.lineTo(x, ys + wave(x, t, 2) + amp * Math.exp(-dx / 80) * Math.sin(dx * 0.12 - t * 6)); }
+  c.lineTo(w - 14, yb); c.closePath(); c.fillStyle = fc; c.fill();
+  c.strokeStyle = C.labInk; c.lineWidth = 2.5; c.beginPath(); c.moveTo(14, ys - 30); c.lineTo(14, yb); c.lineTo(w - 14, yb); c.lineTo(w - 14, ys - 30); c.stroke();
+  // block
+  const dens = clamp((f.rb - 100) / 2900, 0, 1);
+  const bc = `rgb(${Math.round(200 - 90 * dens)},${Math.round(160 - 40 * dens + 30 * dens)},${Math.round(110 + 60 * dens)})`;
+  rr(c, cx - bw / 2, top, bw, bh, 3); c.fillStyle = bc; c.fill(); c.strokeStyle = 'rgba(0,0,0,0.35)'; c.lineWidth = 1; c.stroke();
+  for (let i = 1; i < 5; i++) { c.strokeStyle = 'rgba(0,0,0,0.12)'; c.beginPath(); c.moveTo(cx - bw / 2 + 4, top + bh * i / 5); c.lineTo(cx + bw / 2 - 4, top + bh * i / 5 + 3); c.stroke(); }
+  // load
+  if (f.m > 0) { const lw = bw * (0.4 + 0.5 * f.m / 15), lh = 10 + 14 * f.m / 15; rr(c, cx - lw / 2, top - lh, lw, lh, 3); c.fillStyle = C.steel; c.fill(); label(c, fmt(f.m, 1) + ' kg', cx + lw / 2 + 6, top - lh / 2, C.labInk, 11); }
+  // waterline mark on block
+  const subTop = Math.max(top, ys);
+  if (subTop < top + bh) { c.fillStyle = 'rgba(79,182,212,0.25)'; c.fillRect(cx - bw / 2, subTop, bw, top + bh - subTop); }
+  // forces
+  const sc = 0.5;
+  const wl = clamp(f.W * sc, 14, 110), fal = clamp(f.FA * sc, 0, 110);
+  arrow(c, cx - 12, top + bh / 2, cx - 12, top + bh / 2 + wl, C.flare, 3, 9); label(c, 'W', cx - 30, top + bh / 2 + wl - 4, C.flare, 13, 'left', 700);
+  arrow(c, cx + 12, top + bh / 2, cx + 12, top + bh / 2 - fal, C.kelp, 3, 9); label(c, 'F_A', cx + 18, top + bh / 2 - fal + 6, C.kelp, 13, 'left', 700);
+  if (f.N > 0) { const nl = clamp(f.N * sc, 8, 90); arrow(c, cx + bw / 2 + 14, yb, cx + bw / 2 + 14, yb - nl, C.buoy, 3, 9); label(c, 'N', cx + bw / 2 + 22, yb - nl + 6, C.buoy, 13, 'left', 700); }
+  // submerged height
+  if (f.state === 'mengapung') dimV(c, cx + bw / 2 + 30, ys, top + bh, 'h_s = ' + fmt(f.s * 100, 1) + ' cm', C.labInk);
+  label(c, 'ρ_b = ' + fmt(f.rb) + ', ρ_f = ' + fmt(f.rf) + ' kg/m³', 26, yb - 12, C.dim, 11);
+}, ['fl-rb', 'fl-m', 'fl-rf'], () => {
+  const f = floatState();
+  out('o-fl-rb', fmt(f.rb) + ' kg/m³'); out('o-fl-m', fmt(f.m, 1) + ' kg');
+  out('r-fl-s', f.state); out('r-fl-p', fmt(100 * f.s / f.H, 1) + '%'); out('r-fl-w', fmt(f.W, 1) + ' N'); out('r-fl-fa', fmt(f.FA, 1) + ' N'); out('r-fl-n', fmt(f.N, 1) + ' N');
+});
+
+/* ============ 6. ACCELERATED TANK ============ */
+sim('accel', (c, w, h, t, dt, st) => {
+  const a = val('ac-a'), g = 10, th = Math.atan(a / g);
+  if (st.th == null) { st.th = th; st.w = 0; st.v = 0; st.x = 0; st.rot = 0; }
+  st.w += (-(st.th - th) * 9 - st.w * 1.1) * dt; st.th += st.w * dt;
+  if (!RM) { st.v = clamp(st.v + a * dt * 0.35, -6, 6); st.x += st.v * dt * 40; st.rot += st.v * dt * 2; }
+  const tw = Math.min(w * 0.72, 520), th_ = 130, cx = w / 2, ty = 54, ground = ty + th_ + 46;
+  // ground stripes
+  c.strokeStyle = C.faint; c.lineWidth = 2;
+  c.beginPath(); c.moveTo(0, ground); c.lineTo(w, ground); c.stroke();
+  for (let i = 0; i < w / 40 + 1; i++) { const xx = (((i * 40 - st.x) % w) + w) % w; c.beginPath(); c.moveTo(xx, ground + 10); c.lineTo(xx + 16, ground + 10); c.stroke(); }
+  // water
+  const x0 = cx - tw / 2, x1 = cx + tw / 2, ymid = ty + th_ * 0.45, slope = Math.tan(st.th);
+  c.beginPath(); c.moveTo(x0, ty + th_);
+  for (let x = x0; x <= x1; x += 4) c.lineTo(x, ymid + slope * (x - cx) + wave(x, t, 1.5));
+  c.lineTo(x1, ty + th_); c.closePath(); c.fillStyle = C.water; c.fill();
+  c.strokeStyle = C.labInk; c.lineWidth = 3; c.beginPath(); c.moveTo(x0, ty - 6); c.lineTo(x0, ty + th_); c.lineTo(x1, ty + th_); c.lineTo(x1, ty - 6); c.stroke();
+  // wheels
+  [x0 + 50, x1 - 50].forEach(x => { c.strokeStyle = C.labInk; c.lineWidth = 2; c.beginPath(); c.arc(x, ground - 18, 16, 0, 7); c.stroke();
+    for (let i = 0; i < 3; i++) { const an = st.rot + i * 2.09; c.beginPath(); c.moveTo(x, ground - 18); c.lineTo(x + Math.cos(an) * 14, ground - 18 + Math.sin(an) * 14); c.stroke(); } });
+  c.fillStyle = C.labInk; c.fillRect(x0, ty + th_, tw, 8);
+  // accel arrow
+  if (Math.abs(a) > 0.05) { const L = 20 + 60 * Math.abs(a) / 6; arrow(c, cx - Math.sign(a) * L / 2, ty - 26, cx + Math.sign(a) * L / 2, ty - 26, C.buoy, 3, 10); label(c, 'a = ' + fmt(a, 1) + ' m/s²', cx + L / 2 + 10, ty - 26, C.buoy, 12, 'left', 700); }
+  else label(c, 'a = 0: permukaan datar', cx, ty - 26, C.dim, 12, 'center');
+  // effective gravity diagram
+  const gx = x1 - 70, gy = ty + 26, sc = 5;
+  arrow(c, gx, gy, gx, gy + g * sc, C.dim, 1.5, 6);
+  arrow(c, gx, gy, gx - a * sc, gy, C.dim, 1.5, 6);
+  arrow(c, gx, gy, gx - a * sc, gy + g * sc, C.buoy, 2.5, 8);
+  label(c, 'g_ef', gx - a * sc + (a > 0 ? -34 : 6), gy + g * sc + 4, C.buoy, 11, 'left', 700);
+  // dh
+  const yl = ymid + slope * (x0 - cx), yr = ymid + slope * (x1 - cx);
+  if (Math.abs(yl - yr) > 6) dimV(c, x0 - 14, Math.min(yl, yr), Math.max(yl, yr), '', C.labInk);
+  label(c, 'L = 2,4 m', cx, ty + th_ - 12, C.dim, 11, 'center');
+}, ['ac-a'], () => {
+  const a = val('ac-a');
+  out('o-ac-a', fmt(a, 1) + ' m/s²'); out('r-ac-t', fmt(Math.atan(Math.abs(a) / 10) * 180 / Math.PI, 2) + '°'); out('r-ac-h', fmt(Math.abs(a) * 2.4 / 10, 2) + ' m');
+  out('r-ac-s', a > 0 ? 'kiri (belakang)' : a < 0 ? 'kanan' : 'datar');
+});
+
+/* ============ 7. ROTATING CYLINDER ============ */
+sim('rotate', (c, w, h, t, dt, st) => {
+  const wt = val('rt-w'); st.w = st.w == null ? wt : st.w + (wt - st.w) * Math.min(1, dt * 1.4);
+  st.ph = (st.ph || 0) + (RM ? 0 : st.w * dt * 0.35);
+  const R = 0.15, g = 9.8, h0 = 0.35, Hc = 0.6, dh = st.w * st.w * R * R / (2 * g), zc = h0 - dh / 2;
+  const k = (h - 60) / Hc, cx = w / 2, Rp = R * k, yb = h - 34;
+  const Z = z => yb - z * k;
+  c.beginPath(); c.moveTo(cx - Rp, yb);
+  for (let i = 0; i <= 60; i++) { const r = -R + 2 * R * i / 60; c.lineTo(cx + r * k, Z(zc + st.w * st.w * r * r / (2 * g)) + wave(r * 900, t, 0.8)); }
+  c.lineTo(cx + Rp, yb); c.closePath(); c.fillStyle = C.water; c.fill();
+  // surface markers going round
+  for (let i = 0; i < 10; i++) { const an = st.ph + i * Math.PI / 5, r = R * Math.cos(an) * 0.92, front = Math.sin(an) > 0; const x = cx + r * k, y = Z(zc + st.w * st.w * r * r / (2 * g)) + 4;
+    c.fillStyle = front ? C.buoy : 'rgba(233,169,42,0.3)'; c.beginPath(); c.arc(x, y, front ? 3.5 : 2.5, 0, 7); c.fill(); }
+  c.strokeStyle = C.labInk; c.lineWidth = 3; c.beginPath(); c.moveTo(cx - Rp, Z(Hc)); c.lineTo(cx - Rp, yb); c.lineTo(cx + Rp, yb); c.lineTo(cx + Rp, Z(Hc)); c.stroke();
+  // turntable
+  c.strokeStyle = C.faint; c.lineWidth = 2; c.beginPath(); c.ellipse(cx, yb + 12, Rp + 30, 9, 0, 0, 7); c.stroke();
+  const ma = st.ph * 2; c.fillStyle = C.labInk; c.beginPath(); c.arc(cx + Math.cos(ma) * (Rp + 30), yb + 12 + Math.sin(ma) * 9, 3, 0, 7); c.fill();
+  // axis
+  c.setLineDash([5, 5]); c.strokeStyle = C.faint; c.lineWidth = 1; c.beginPath(); c.moveTo(cx, Z(Hc) - 10); c.lineTo(cx, yb + 24); c.stroke(); c.setLineDash([]);
+  // annotations
+  c.setLineDash([3, 4]); c.strokeStyle = C.dim; c.beginPath(); c.moveTo(cx - Rp - 20, Z(h0)); c.lineTo(cx - Rp, Z(h0)); c.stroke(); c.setLineDash([]);
+  label(c, 'awal', cx - Rp - 24, Z(h0), C.dim, 11, 'right');
+  const ze = zc + dh;
+  if (dh > 0.005) { dimV(c, cx + Rp + 18, Z(ze), Z(zc), 'Δh = ' + fmt(dh * 100, 1) + ' cm', C.buoy);
+    c.setLineDash([3, 4]); c.strokeStyle = C.dim; c.beginPath(); c.moveTo(cx, Z(zc)); c.lineTo(cx + Rp + 18, Z(zc)); c.stroke(); c.setLineDash([]); }
+  label(c, 'ω = ' + fmt(st.w, 1) + ' rad/s', 20, 24, C.labInk, 13, 'left', 700);
+}, ['rt-w'], () => {
+  const w = val('rt-w'), dh = w * w * 0.0225 / 19.6;
+  out('o-rt-w', fmt(w, 1) + ' rad/s'); out('r-rt-h', fmt(dh * 100, 2) + ' cm'); out('r-rt-c', fmt((0.35 - dh / 2) * 100, 1) + ' cm'); out('r-rt-e', fmt((0.35 + dh / 2) * 100, 1) + ' cm');
+});
+
+/* ============ 8. CAPILLARY ============ */
+const capH = () => 2 * 0.0728 * Math.cos(val('cp-t') * Math.PI / 180) / (1000 * 9.8 * val('cp-r') * 1e-3) * 100;
+sim('capil', (c, w, h, t, dt, st) => {
+  const r = val('cp-r'), thd = val('cp-t'), target = capH();
+  if (st.h == null) { st.h = 0; st.v = 0; }
+  st.v += ((target - st.h) * 14 - st.v * 6) * dt; st.h += st.v * dt;
+  const lvl = h * 0.72, k = (lvl - 30) / 15.5, cx = w * 0.45, tw = 8 + r * 42, top = 12;
+  // basin
+  c.beginPath(); c.moveTo(30, h - 10); for (let x = 30; x <= w - 30; x += 4) c.lineTo(x, lvl + wave(x, t, 1.2)); c.lineTo(w - 30, h - 10); c.closePath(); c.fillStyle = C.water; c.fill();
+  c.strokeStyle = C.labInk; c.lineWidth = 2.5; c.beginPath(); c.moveTo(30, lvl - 20); c.lineTo(30, h - 10); c.lineTo(w - 30, h - 10); c.lineTo(w - 30, lvl - 20); c.stroke();
+  // column in tube
+  const yTopCol = lvl - st.h * k, men = (tw / 2) * Math.cos(thd * Math.PI / 180) * 0.7;
+  c.save(); c.beginPath(); c.rect(cx - tw / 2, top, tw, h - 30 - top); c.clip();
+  c.fillStyle = 'rgb(11,47,69)'; c.fillRect(cx - tw / 2, top, tw, h);
+  c.beginPath(); c.moveTo(cx - tw / 2, h); c.lineTo(cx - tw / 2, yTopCol - men); c.quadraticCurveTo(cx, yTopCol + men, cx + tw / 2, yTopCol - men); c.lineTo(cx + tw / 2, h); c.closePath();
+  c.fillStyle = 'rgba(79,182,212,0.6)'; c.fill(); c.restore();
+  c.strokeStyle = C.labInk; c.lineWidth = 2; c.beginPath(); c.moveTo(cx - tw / 2 - 2, top); c.lineTo(cx - tw / 2 - 2, h - 30); c.moveTo(cx + tw / 2 + 2, top); c.lineTo(cx + tw / 2 + 2, h - 30); c.stroke();
+  // scale
+  const sx = cx + tw / 2 + 50;
+  for (let cm = -4; cm <= 15; cm += 1) { const y = lvl - cm * k; if (y < top || y > h - 12) continue; c.strokeStyle = cm % 5 === 0 ? C.dim : C.faint; c.beginPath(); c.moveTo(sx, y); c.lineTo(sx + (cm % 5 === 0 ? 12 : 6), y); c.stroke(); if (cm % 5 === 0) label(c, cm + ' cm', sx + 16, y, C.dim, 10); }
+  if (Math.abs(st.h) > 0.08) dimV(c, cx - tw / 2 - 22, Math.min(lvl, yTopCol), Math.max(lvl, yTopCol), '', C.buoy);
+  label(c, 'h = ' + fmt(st.h, 2) + ' cm', cx - tw / 2 - 30, (lvl + yTopCol) / 2, C.buoy, 12, 'right', 700);
+  // contact angle sketch top-right
+  const ax = w - 110, ay = 50;
+  c.strokeStyle = C.labInk; c.lineWidth = 2; c.beginPath(); c.moveTo(ax, ay - 30); c.lineTo(ax, ay + 30); c.stroke();
+  const an = thd * Math.PI / 180; c.strokeStyle = C.tide2; c.beginPath(); c.moveTo(ax, ay); c.lineTo(ax + Math.sin(an) * 40, ay + Math.cos(an) * 40); c.stroke();
+  c.strokeStyle = C.buoy; c.beginPath(); c.arc(ax, ay, 16, Math.PI / 2 - an, Math.PI / 2); c.stroke();
+  label(c, 'θ = ' + thd + '°', ax + 20, ay - 18, C.labInk, 12);
+}, ['cp-r', 'cp-t'], () => {
+  const hh = capH(), thd = val('cp-t');
+  out('o-cp-r', fmt(val('cp-r'), 2) + ' mm'); out('o-cp-t', thd + '°'); out('r-cp-h', fmt(hh, 2) + ' cm');
+  out('r-cp-m', thd < 90 ? 'cekung, cairan naik' : thd > 90 ? 'cembung, cairan turun' : 'datar, tidak naik');
+});
+
+/* ============ 9. CONTINUITY + BERNOULLI ============ */
+sim('bern', (c, w, h, t, dt, st) => {
+  const v1 = val('bn-v'), ratio = val('bn-r'), P1 = 200000, rho = 1000;
+  const H1 = Math.min(84, h * 0.24), cy = h * 0.72, xa = 16, xb = w - 16;
+  const shape = x => { const u = (x - xa) / (xb - xa); let f = 0; if (u > 0.3 && u < 0.42) f = (1 - Math.cos((u - 0.3) / 0.12 * Math.PI)) / 2; else if (u >= 0.42 && u <= 0.58) f = 1; else if (u > 0.58 && u < 0.7) f = (1 + Math.cos((u - 0.58) / 0.12 * Math.PI)) / 2; return 1 - (1 - ratio) * f; };
+  const half = x => H1 / 2 * shape(x);
+  // pipe fill
+  c.beginPath(); for (let x = xa; x <= xb; x += 3) c.lineTo(x, cy - half(x)); for (let x = xb; x >= xa; x -= 3) c.lineTo(x, cy + half(x)); c.closePath(); c.fillStyle = C.water; c.fill();
+  c.strokeStyle = C.labInk; c.lineWidth = 2.5;
+  c.beginPath(); for (let x = xa; x <= xb; x += 3) c.lineTo(x, cy - half(x)); c.stroke();
+  c.beginPath(); for (let x = xa; x <= xb; x += 3) c.lineTo(x, cy + half(x)); c.stroke();
+  // particles
+  if (!st.p) st.p = Array.from({ length: 150 }, () => ({ x: xa + Math.random() * (xb - xa), y: Math.random() - 0.5 }));
+  const vmax = v1 / ratio;
+  for (const p of st.p) {
+    const sh = shape(p.x), vl = v1 / sh; p.x += vl * dt * 38; if (p.x > xb) { p.x = xa; p.y = Math.random() - 0.5; }
+    const q = clamp((vl - v1) / Math.max(0.01, vmax - v1), 0, 1);
+    c.fillStyle = q > 0.5 ? C.buoy : C.labInk; c.globalAlpha = 0.45 + 0.5 * q;
+    const len = 2 + vl * 3; c.fillRect(p.x - len, cy + p.y * 2 * half(p.x) * 0.9 - 1, len, 2);
+  }
+  c.globalAlpha = 1;
+  // piezometers
+  const xs = [xa + (xb - xa) * 0.15, xa + (xb - xa) * 0.5, xa + (xb - xa) * 0.85], maxp = cy - H1 / 2 - 22;
+  st.ph = st.ph || [0, 0, 0];
+  xs.forEach((x, i) => {
+    const v = v1 / shape(x), P = P1 + 0.5 * rho * (v1 * v1 - v * v), target = maxp * P / P1;
+    st.ph[i] += (target - st.ph[i]) * Math.min(1, dt * 3);
+    const yt = cy - half(x) - st.ph[i];
+    c.fillStyle = 'rgba(79,182,212,0.55)'; c.fillRect(x - 5, yt, 10, st.ph[i]);
+    c.strokeStyle = C.labInk; c.lineWidth = 1.5; c.beginPath(); c.moveTo(x - 6, cy - half(x)); c.lineTo(x - 6, 14); c.moveTo(x + 6, cy - half(x)); c.lineTo(x + 6, 14); c.stroke();
+    label(c, fmt(P / 1000, 1) + ' kPa', x + 12, yt, i === 1 ? C.buoy : C.labInk, 12, 'left', 700);
+  });
+  label(c, 'v₁ = ' + fmt(v1, 1) + ' m/s', xs[0], cy + H1 / 2 + 14, C.dim, 11, 'center');
+  label(c, 'v₂ = ' + fmt(v1 / ratio, 2) + ' m/s', xs[1], cy + H1 / 2 + 14, C.buoy, 11, 'center', 700);
+}, ['bn-v', 'bn-r'], () => {
+  const v1 = val('bn-v'), r = val('bn-r'), v2 = v1 / r, P2 = 200000 + 500 * (v1 * v1 - v2 * v2);
+  out('o-bn-v', fmt(v1, 1) + ' m/s'); out('o-bn-r', fmt(r, 2)); out('r-bn-v2', fmt(v2, 2) + ' m/s'); out('r-bn-p2', fmt(P2) + ' Pa'); out('r-bn-dp', fmt(200000 - P2) + ' Pa');
+});
+
+/* ============ 10. TORRICELLI JET ============ */
+sim('jet', (c, w, h, t, dt, st) => {
+  const hh = val('tr-h'), H = val('tr-H'), g = 10, v0 = Math.sqrt(2 * g * hh), tf = Math.sqrt(2 * H / g), x = v0 * tf;
+  const tsc = Math.min(150, (w - 50) / (1.6 + 2 * Math.sqrt(hh * H)), (h - 40) / (hh + H + 0.5)); st.sc = st.sc == null ? tsc : st.sc + (tsc - st.sc) * Math.min(1, dt * 3);
+  const sc = st.sc, ground = h - 18, tx = 20, tw = 0.9 * sc;
+  st.lv = st.lv == null ? hh : st.lv + (hh - st.lv) * Math.min(1, dt * 4);
+  st.lH = st.lH == null ? H : st.lH + (H - st.lH) * Math.min(1, dt * 4);
+  const yHole = ground - st.lH * sc, ySurf = yHole - st.lv * sc, xHole = tx + tw;
+  // ground
+  c.strokeStyle = C.faint; c.lineWidth = 2; c.beginPath(); c.moveTo(0, ground); c.lineTo(w, ground); c.stroke();
+  for (let m = 0.5; m <= 8; m += 0.5) { const xx = xHole + m * sc; if (sc < 60 && m % 1) continue; if (xx > w - 6) break; c.beginPath(); c.moveTo(xx, ground); c.lineTo(xx, ground + 5); c.stroke(); label(c, fmt(m, m % 1 ? 1 : 0) + ' m', xx, ground + 11, C.dim, 9, 'center'); }
+  // tank
+  const tBot = yHole + 14, tTop = ySurf - 18;
+  c.fillStyle = C.water; c.beginPath(); c.moveTo(tx, tBot); for (let xx = tx; xx <= tx + tw; xx += 3) c.lineTo(xx, ySurf + wave(xx, t, 1.5)); c.lineTo(tx + tw, tBot); c.closePath(); c.fill();
+  c.strokeStyle = C.labInk; c.lineWidth = 2.5; c.beginPath(); c.moveTo(tx, tTop); c.lineTo(tx, tBot); c.lineTo(tx + tw, tBot); c.lineTo(tx + tw, yHole + 3); c.moveTo(tx + tw, yHole - 3); c.lineTo(tx + tw, tTop); c.stroke();
+  c.lineWidth = 2; c.beginPath(); c.moveTo(tx + 6, tBot); c.lineTo(tx + 6, ground); c.moveTo(tx + tw - 6, tBot); c.lineTo(tx + tw - 6, ground); c.stroke();
+  // analytic path
+  const v0c = Math.sqrt(2 * g * st.lv), tfc = Math.sqrt(2 * st.lH / g);
+  c.setLineDash([4, 5]); c.strokeStyle = C.faint; c.lineWidth = 1.2; c.beginPath();
+  for (let i = 0; i <= 40; i++) { const tt = tfc * i / 40; c.lineTo(xHole + v0c * tt * sc, yHole + 0.5 * g * tt * tt * sc); } c.stroke(); c.setLineDash([]);
+  // particles
+  st.p = st.p || []; st.acc = (st.acc || 0) + dt * 90;
+  while (st.acc > 1) { st.acc--; st.p.push({ tt: 0, j: (Math.random() - 0.5) * 0.06 }); }
+  const ts = 0.55;
+  for (const p of st.p) p.tt += dt * ts;
+  st.p = st.p.filter(p => p.tt < tfc);
+  c.fillStyle = C.tide2;
+  for (const p of st.p) { const px = xHole + v0c * (1 + p.j) * p.tt * sc, py = yHole + 0.5 * g * p.tt * p.tt * sc; c.globalAlpha = 0.85; c.beginPath(); c.arc(px, py, 2.4, 0, 7); c.fill(); }
+  c.globalAlpha = 1;
+  // splash
+  const lx = xHole + v0c * tfc * sc;
+  for (let i = 0; i < 5; i++) { const ph = ((t * 2 + i / 5) % 1); c.strokeStyle = 'rgba(123,208,230,' + (0.6 * (1 - ph)) + ')'; c.lineWidth = 1.2; c.beginPath(); c.ellipse(lx, ground, 4 + ph * 18, 1 + ph * 4, 0, Math.PI, 0); c.stroke(); }
+  c.fillStyle = C.buoy; c.beginPath(); c.moveTo(lx, ground - 2); c.lineTo(lx - 6, ground - 12); c.lineTo(lx + 6, ground - 12); c.closePath(); c.fill();
+  label(c, 'x = ' + fmt(x, 2) + ' m', lx, ground - 22, C.buoy, 13, 'center', 700);
+  // dims
+  dimV(c, tx + tw + 12, ySurf, yHole, 'h', C.labInk); dimV(c, tx + tw + 30, yHole, ground, 'H', C.labInk);
+  arrow(c, xHole + 2, yHole, xHole + 2 + Math.min(80, v0c * 6), yHole, C.buoy, 2, 7);
+}, ['tr-h', 'tr-H'], () => {
+  const hh = val('tr-h'), H = val('tr-H'), v0 = Math.sqrt(20 * hh), tf = Math.sqrt(H / 5);
+  out('o-tr-h', fmt(hh, 2) + ' m'); out('o-tr-H', fmt(H, 2) + ' m'); out('r-tr-v', fmt(v0, 2) + ' m/s'); out('r-tr-t', fmt(tf, 3) + ' s'); out('r-tr-x', fmt(v0 * tf, 3) + ' m');
+});
+
+/* ============ 11. STOKES ============ */
+const stokes = () => { const r = val('st-r') * 1e-3, rb = val('st-b'), vt = 2 * r * r * (rb - 1200) * 10 / (9 * 0.8); return { r, rb, vt, Re: 1200 * vt * 2 * r / 0.8 }; };
+sim('stokes', (c, w, h, t, dt, st) => {
+  const s = stokes(); const key = s.r + ':' + s.rb;
+  if (st.key !== key) { st.key = key; st.tt = 0; st.y = 0; }
+  const vis = 26 * Math.sqrt(s.vt / 0.00458), tau = 0.7;
+  if (!RM) st.tt += dt;
+  const v = s.vt * (1 - Math.exp(-st.tt / tau)), vv = vis * (1 - Math.exp(-st.tt / tau));
+  st.y += vv * dt;
+  const colX = 40, colW = Math.min(120, w * 0.25), top = 20, bot = h - 20;
+  if (st.y > bot - top - 30) { st.y = 0; st.tt = 0; }
+  // column
+  const gr = c.createLinearGradient(0, top, 0, bot); gr.addColorStop(0, 'rgba(233,169,42,0.18)'); gr.addColorStop(1, 'rgba(233,169,42,0.32)');
+  c.fillStyle = gr; c.fillRect(colX, top, colW, bot - top);
+  c.strokeStyle = C.labInk; c.lineWidth = 2; c.beginPath(); c.moveTo(colX, top - 6); c.lineTo(colX, bot); c.lineTo(colX + colW, bot); c.lineTo(colX + colW, top - 6); c.stroke();
+  const br = 4 + s.r * 1e3 * 6, bx = colX + colW / 2, by = top + 12 + st.y;
+  // wake
+  for (let i = 1; i < 6; i++) { c.strokeStyle = 'rgba(221,241,246,' + (0.12 - i * 0.018) + ')'; c.lineWidth = 1; c.beginPath(); c.arc(bx, by - i * br * 0.9, br * (1 + i * 0.25), Math.PI * 1.1, Math.PI * 1.9); c.stroke(); }
+  const bg = c.createRadialGradient(bx - br / 3, by - br / 3, 1, bx, by, br); bg.addColorStop(0, '#fff'); bg.addColorStop(1, s.rb > 5000 ? '#7d8a94' : s.rb > 2000 ? '#9ec7cf' : '#e0a95a');
+  c.fillStyle = bg; c.beginPath(); c.arc(bx, by, br, 0, 7); c.fill();
+  // forces
+  const Wl = 40, FAl = 40 * 1200 / s.rb, FDl = (Wl - FAl) * (v / s.vt);
+  arrow(c, bx, by + br, bx, by + br + Wl, C.flare, 2.5, 7);
+  arrow(c, bx - br - 6, by, bx - br - 6, by - FAl, C.kelp, 2.5, 7);
+  arrow(c, bx + br + 6, by, bx + br + 6, by - FDl, C.buoy, 2.5, 7);
+  label(c, 'W', bx + 6, by + br + Wl - 6, C.flare, 11, 'left', 700);
+  label(c, 'F_A', bx - br - 10, by - FAl, C.kelp, 11, 'right', 700);
+  label(c, 'F_D', bx + br + 12, by - FDl, C.buoy, 11, 'left', 700);
+  // v-t plot
+  const px = colX + colW + 56, pw = w - px - 24, py = top + 10, ph = bot - top - 40;
+  if (pw > 80) {
+    c.strokeStyle = C.faint; c.lineWidth = 1; c.beginPath(); c.moveTo(px, py); c.lineTo(px, py + ph); c.lineTo(px + pw, py + ph); c.stroke();
+    label(c, 'v', px - 10, py, C.dim, 12, 'right'); label(c, 't', px + pw, py + ph + 12, C.dim, 12, 'right');
+    const yv = py + ph * 0.18;
+    c.setLineDash([5, 5]); c.strokeStyle = C.buoy; c.beginPath(); c.moveTo(px, yv); c.lineTo(px + pw, yv); c.stroke(); c.setLineDash([]);
+    label(c, 'v_t = ' + fmt(s.vt * 1000, 2) + ' mm/s', px + pw, yv - 12, C.buoy, 12, 'right', 700);
+    const T = 4 * tau, cur = Math.min(st.tt, T);
+    c.strokeStyle = C.labInk; c.lineWidth = 2.2; c.beginPath();
+    for (let i = 0; i <= 80; i++) { const tt = cur * i / 80; c.lineTo(px + pw * tt / T, py + ph - (ph - (yv - py)) * (1 - Math.exp(-tt / tau))); } c.stroke();
+    const ex = px + pw * cur / T, ey = py + ph - (ph - (yv - py)) * (1 - Math.exp(-cur / tau));
+    c.fillStyle = C.buoy; c.beginPath(); c.arc(ex, ey, 4, 0, 7); c.fill();
+    label(c, 'W = F_A + F_D saat v = v_t', px + 8, py + ph - 14, C.dim, 11);
+  }
+}, ['st-r', 'st-b'], () => {
+  const s = stokes();
+  out('o-st-r', fmt(val('st-r'), 2) + ' mm'); out('r-st-v', fmt(s.vt * 1000, 3) + ' mm/s'); out('r-st-re', s.Re < 0.01 ? sci(s.Re, 2) : fmt(s.Re, 3));
+  out('r-st-ok', s.Re < 0.1 ? 'valid, Re ≪ 1' : s.Re < 1 ? 'masih wajar, Re mendekati 1' : 'kurang tepat, Re ≥ 1');
+});
+
+/* ============ 12. REYNOLDS ============ */
+const reyn = () => { const [rho, mu] = document.getElementById('re-f').value.split(',').map(Number); const v = val('re-v'), D = val('re-d') / 100; return { Re: rho * v * D / mu, v, D }; };
+const nz = (x, t, i) => Math.sin(x * 0.045 + t * 3 + i) * 0.5 + Math.sin(x * 0.13 - t * 5.3 + i * 2.1) * 0.3 + Math.sin(x * 0.29 + t * 8 + i * 4.2) * 0.2;
+sim('reyn', (c, w, h, t, dt, st) => {
+  const { Re, v } = reyn();
+  let turb = Re < 2300 ? 0 : Re > 4000 ? clamp(0.55 + 0.15 * Math.log10(Re / 4000), 0.55, 1) : 0.35 * (Math.sin(t * 1.4) > 0.2 ? 1 : 0.15);
+  st.tb = st.tb == null ? turb : st.tb + (turb - st.tb) * Math.min(1, dt * 3);
+  const cy = h * 0.42, hp = Math.min(70, h * 0.24), xa = 20, xb = w - 20;
+  c.fillStyle = C.water; c.fillRect(xa, cy - hp, xb - xa, hp * 2);
+  c.strokeStyle = C.labInk; c.lineWidth = 2.5; c.beginPath(); c.moveTo(xa, cy - hp); c.lineTo(xb, cy - hp); c.moveTo(xa, cy + hp); c.lineTo(xb, cy + hp); c.stroke();
+  st.off = (st.off || 0) + dt * (20 + v * 120);
+  const lines = 7;
+  for (let i = 0; i < lines; i++) {
+    const yf = -0.75 + 1.5 * i / (lines - 1);
+    c.strokeStyle = i % 2 ? C.buoy : C.flare; c.lineWidth = 2; c.globalAlpha = 0.85;
+    c.setLineDash([18, 6]); c.lineDashOffset = -st.off * (1 - yf * yf * 0.6);
+    c.beginPath();
+    for (let x = xa + 10; x <= xb; x += 4) {
+      const grow = Math.pow((x - xa) / (xb - xa), 1.1), d = st.tb * grow * hp * 0.9 * nz(x, t, i * 1.7);
+      c.lineTo(x, clamp(cy + yf * hp + d, cy - hp + 3, cy + hp - 3));
+    }
+    c.stroke();
+  }
+  c.setLineDash([]); c.globalAlpha = 1;
+  // injector
+  c.fillStyle = C.labInk; c.fillRect(xa, cy - hp * 0.85, 8, hp * 1.7);
+  // Re gauge (log scale)
+  const gy = h - 40, gx0 = 30, gx1 = w - 30, L = v10 => gx0 + (gx1 - gx0) * clamp(Math.log10(v10), 0, 6) / 6;
+  [[1, 2300, C.kelp], [2300, 4000, C.buoy], [4000, 1e6, C.flare]].forEach(([a, b, col]) => { c.fillStyle = col; c.globalAlpha = 0.55; c.fillRect(L(a), gy, L(b) - L(a), 8); });
+  c.globalAlpha = 1;
+  for (let e = 0; e <= 6; e++) label(c, '10' + sup(e), L(Math.pow(10, e)), gy + 22, C.dim, 10, 'center');
+  const mx = L(Math.max(1, Re)); c.fillStyle = C.labInk; c.beginPath(); c.moveTo(mx, gy - 2); c.lineTo(mx - 6, gy - 12); c.lineTo(mx + 6, gy - 12); c.closePath(); c.fill();
+  label(c, 'Re = ' + (Re >= 1 ? fmt(Re) : fmt(Re, 2)), clamp(mx, 60, w - 60), gy - 22, C.labInk, 12, 'center', 700);
+}, ['re-v', 're-d', 're-f'], () => {
+  const { Re } = reyn();
+  out('o-re-v', fmt(val('re-v'), 2) + ' m/s'); out('o-re-d', fmt(val('re-d'), 1) + ' cm');
+  out('r-re-re', Re >= 1 ? fmt(Re) : fmt(Re, 3)); out('r-re-k', Re < 2300 ? 'laminar' : Re <= 4000 ? 'transisi' : 'turbulen');
+});
+
+/* ============ 13. POISEUILLE ============ */
+sim('pois', (c, w, h, t, dt, st) => {
+  const R = val('ps-r'), L = val('ps-l');
+  st.R = st.R == null ? R : st.R + (R - st.R) * Math.min(1, dt * 4);
+  st.L = st.L == null ? L : st.L + (L - st.L) * Math.min(1, dt * 4);
+  const cy = h / 2, hp = 52 * st.R, Lp = (w - 90) * st.L / 2, xa = (w - Lp) / 2, xb = xa + Lp;
+  const vmax = st.R * st.R / st.L;
+  c.fillStyle = C.water; c.fillRect(xa, cy - hp, Lp, hp * 2);
+  c.strokeStyle = C.labInk; c.lineWidth = 3; c.beginPath(); c.moveTo(xa, cy - hp); c.lineTo(xb, cy - hp); c.moveTo(xa, cy + hp); c.lineTo(xb, cy + hp); c.stroke();
+  // particles along streamlines
+  if (!st.p) st.p = Array.from({ length: 120 }, () => ({ u: Math.random(), y: Math.random() * 2 - 1 }));
+  for (const p of st.p) { const vl = vmax * (1 - p.y * p.y); p.u += vl * dt * 0.35 / st.L; if (p.u > 1) { p.u -= 1; p.y = Math.random() * 2 - 1; }
+    c.fillStyle = C.labInk; c.globalAlpha = 0.35 + 0.5 * (1 - p.y * p.y); c.fillRect(xa + p.u * Lp, cy + p.y * hp * 0.94, 3 + 6 * vl, 1.6); }
+  c.globalAlpha = 1;
+  // profile arrows
+  const px = xa + Lp * 0.45, sc = 70;
+  for (let i = -5; i <= 5; i++) { const y = i / 5, len = sc * vmax * (1 - y * y) * (1 + (RM ? 0 : 0.03 * Math.sin(t * 4))); arrow(c, px, cy + y * hp * 0.95, px + len, cy + y * hp * 0.95, C.buoy, 1.8, 6); }
+  c.strokeStyle = C.buoy; c.lineWidth = 1.2; c.beginPath(); for (let i = 0; i <= 40; i++) { const y = -1 + 2 * i / 40; c.lineTo(px + sc * vmax * (1 - y * y), cy + y * hp * 0.95); } c.stroke();
+  label(c, 'P₁', xa - 10, cy, C.labInk, 13, 'right', 700); label(c, 'P₂', xb + 10, cy, C.labInk, 13, 'left', 700);
+  label(c, 'v_max = 2 v̄', px + sc * vmax + 8, cy - 10, C.buoy, 11, 'left', 700);
+  label(c, 'panjang ' + fmt(st.L, 1) + ' L₀', (xa + xb) / 2, cy + hp + 16, C.dim, 11, 'center');
+}, ['ps-r', 'ps-l'], () => {
+  const R = val('ps-r'), L = val('ps-l'), q = Math.pow(R, 4) / L;
+  out('o-ps-r', fmt(R, 2) + '×'); out('o-ps-l', fmt(L, 1) + '×');
+  out('r-ps-q', fmt(q, 4) + (q < 1 ? '  (≈ 1/' + fmt(1 / q, 1) + ')' : '')); out('r-ps-rh', fmt(1 / q, 3) + '×');
+});
+
+/* ============ HERO ============ */
+(function hero() {
+  const cv = $('#heroCanvas'); if (!cv) return;
+  const ctx = cv.getContext('2d');
+  let W = 0, H = 0, d = 1, off = null, offT = null, fontPx = 100, baseY = 0, waterY = 0, ripples = [];
+  function build() {
+    const r = cv.getBoundingClientRect(); d = Math.min(window.devicePixelRatio || 1, 2);
+    W = r.width; H = r.height; if (!W) return;
+    cv.width = Math.round(W * d); cv.height = Math.round(H * d); ctx.setTransform(d, 0, 0, d, 0, 0);
+    off = document.createElement('canvas'); off.width = cv.width; off.height = cv.height;
+    offT = document.createElement('canvas'); offT.width = cv.width; offT.height = cv.height;
+    const o = off.getContext('2d'), ot = offT.getContext('2d');
+    [o, ot].forEach(x => x.setTransform(d, 0, 0, d, 0, 0));
+    const word = 'FLUIDA';
+    fontPx = H * 0.86;
+    const setF = x => { x.font = `800 ${fontPx}px ${FONT}`; try { x.fontStretch = 'condensed'; } catch (e) { } x.letterSpacing = '-0.02em'; };
+    setF(o); let m = o.measureText(word).width;
+    fontPx = Math.min(fontPx, fontPx * (W * 0.98) / m); setF(o); setF(ot); m = o.measureText(word).width;
+    baseY = H * 0.93; waterY = baseY - fontPx * 0.36;
+    o.textBaseline = ot.textBaseline = 'alphabetic';
+    o.fillStyle = C.ink; o.fillText(word, (W - m) / 2, baseY);
+    ot.fillStyle = C.tide; ot.fillText(word, (W - m) / 2, baseY);
+    o.font = ot.font = `600 ${Math.max(14, fontPx * 0.09)}px ${FONT}`;
+    o.fillStyle = C.tide; o.fillText('Master Modul', (W - m) / 2 + fontPx * 0.04, baseY - fontPx * 0.74);
+  }
+  window.__heroRebuild = build;
+  const surf = (x, t) => {
+    let y = waterY + 5 * Math.sin(x * 0.012 + t * 1.1) + 3 * Math.sin(x * 0.031 - t * 1.7) + 1.5 * Math.sin(x * 0.07 + t * 2.6);
+    for (const r of ripples) { const age = t - r.t0, dx = x - r.x; y += r.a * Math.exp(-age * 1.4) * Math.exp(-(dx * dx) / (2 * Math.pow(30 + age * 120, 2))) * Math.sin(dx * 0.08 - age * 9); }
+    return y;
+  };
+  let tt = 0, lastT = performance.now(), visible = true;
+  new IntersectionObserver(es => visible = es[0].isIntersecting).observe(cv);
+  function frame(now) {
+    const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+    if (visible && W) {
+      if (!RM) tt += dt;
+      ripples = ripples.filter(r => tt - r.t0 < 3);
+      ctx.clearRect(0, 0, W, H);
+      // above water: crisp ink
+      ctx.save(); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(W, 0);
+      for (let x = W; x >= 0; x -= 6) ctx.lineTo(x, surf(x, tt));
+      ctx.closePath(); ctx.clip(); ctx.drawImage(off, 0, 0, W, H); ctx.restore();
+      // below water
+      ctx.save(); ctx.beginPath(); ctx.moveTo(0, H);
+      for (let x = 0; x <= W; x += 6) ctx.lineTo(x, surf(x, tt));
+      ctx.lineTo(W, H); ctx.closePath(); ctx.clip();
+      const g = ctx.createLinearGradient(0, waterY - 10, 0, H); g.addColorStop(0, 'rgba(43,147,179,0.20)'); g.addColorStop(1, 'rgba(27,111,142,0.42)');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      const top = Math.floor(waterY - 14);
+      for (let y = top; y < H; y += 2) {
+        const depth = (y - waterY) / (H - waterY);
+        const dx = Math.sin(y * 0.06 + tt * 2.2) * (2 + 5 * depth) + Math.sin(y * 0.021 - tt * 1.3) * 3;
+        ctx.globalAlpha = 0.9 - 0.25 * depth;
+        ctx.drawImage(offT, 0, y * d, offT.width, 2 * d, dx, y, W, 2);
+      }
+      ctx.globalAlpha = 1;
+      // caustic glints
+      for (let i = 0; i < 26; i++) { const x = (i * 97.3 + tt * (8 + i % 5 * 3)) % W, y = waterY + 12 + (i * 37) % Math.max(10, (H - waterY - 14)); const a = 0.5 + 0.5 * Math.sin(tt * 2 + i); ctx.fillStyle = `rgba(255,255,255,${0.12 * a})`; ctx.fillRect(x, y, 10 + (i % 4) * 4, 1.5); }
+      // bubbles
+      for (let i = 0; i < 14; i++) { const ph = (tt * (0.07 + (i % 4) * 0.02) + i * 0.173) % 1; const x = (i * 131) % W + Math.sin(tt * 1.5 + i) * 6; const y = H - ph * (H - waterY); ctx.strokeStyle = `rgba(255,255,255,${0.45 * (1 - ph)})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y, 1.5 + (i % 3) * 1.4, 0, 7); ctx.stroke(); }
+      ctx.restore();
+      // surface line
+      ctx.beginPath(); for (let x = 0; x <= W; x += 4) ctx.lineTo(x, surf(x, tt)); ctx.strokeStyle = C.tide; ctx.lineWidth = 2; ctx.stroke();
+      // depth ticks at right edge
+      ctx.font = `600 11px ${FONT}`; ctx.fillStyle = C.tide; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillText('P₀', W - 4, waterY - 14);
+    }
+    requestAnimationFrame(frame);
+  }
+  let lastRip = 0;
+  const poke = (e, big) => { const r = cv.getBoundingClientRect(); const x = e.clientX - r.left; if (!big && tt - lastRip < 0.12) return; lastRip = tt; ripples.push({ x, t0: tt, a: big ? 22 : 9 }); if (ripples.length > 12) ripples.shift(); };
+  cv.addEventListener('pointermove', e => poke(e, false));
+  cv.addEventListener('pointerdown', e => poke(e, true));
+  new ResizeObserver(build).observe(cv);
+  readColors(); build();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(build);
+  requestAnimationFrame(frame);
+})();
+
+/* ============ DEPTH RAIL, PROGRESS, SHEET ============ */
+const secs = $$('section.bab');
+let done = new Set(store.get('fluida-done', []));
+const ticksEl = $('#railTicks'), sheetList = $('#sheetList');
+secs.forEach(s => {
+  const n = s.id.replace('bab-', ''), title = s.dataset.title;
+  const a = document.createElement('a'); a.className = 'rail-tick'; a.href = '#' + s.id; a.dataset.id = s.id; a.innerHTML = `<span>${n}. ${title}</span>`; ticksEl.appendChild(a);
+  const b = document.createElement('a'); b.href = '#' + s.id; b.dataset.id = s.id; b.innerHTML = `<b>${n}</b><span>${title}</span>`; sheetList.appendChild(b);
+});
+function paintDone() {
+  $$('.got').forEach(b => b.setAttribute('aria-pressed', done.has(b.dataset.bab) ? 'true' : 'false'));
+  $$('[data-id]').forEach(a => a.classList.toggle('done', done.has(a.dataset.id.replace('bab-', ''))));
+  $('#rDone').textContent = done.size; $('.rail-foot').lastChild.textContent = ' dari ' + secs.length + ' bab paham';
+}
+$$('.got').forEach(b => b.addEventListener('click', () => { const k = b.dataset.bab; done.has(k) ? done.delete(k) : done.add(k); store.set('fluida-done', [...done]); paintDone(); }));
+paintDone();
+function layoutTicks() {
+  const max = document.documentElement.scrollHeight - innerHeight, col = $('.rail-col'), hh = col ? col.getBoundingClientRect().height : 0;
+  let lastY = -99;
+  $$('.rail-tick').forEach(a => { const s = document.getElementById(a.dataset.id); const y = hh * clamp((s.offsetTop - 20) / max, 0, 1); a.style.top = y + 'px'; a.querySelector('span').style.visibility = (y - lastY < 15) ? 'hidden' : 'visible'; if (y - lastY >= 15) lastY = y; });
+}
+function onScroll() {
+  const max = document.documentElement.scrollHeight - innerHeight, p = clamp(scrollY / Math.max(1, max), 0, 1);
+  const depth = p * 50, P = 101325 + 1000 * 9.8 * depth;
+  const root = document.documentElement.style;
+  root.setProperty('--depth', (p * 0.9).toFixed(3)); root.setProperty('--railp', (p * 100).toFixed(2) + '%');
+  const col = $('.rail-col'); if (col) root.setProperty('--railpx', (col.getBoundingClientRect().height * p).toFixed(1) + 'px');
+  $('#rDepth').textContent = fmt(depth, 1) + ' m'; $('#rP').textContent = fmt(P / 1000) + ' kPa';
+  $('#mDepth').textContent = fmt(depth, 1) + ' m, P = ' + fmt(P / 1000) + ' kPa';
+  let cur = null;
+  secs.forEach(s => { const r = s.getBoundingClientRect(); const f = clamp((innerHeight * 0.65 - r.top) / r.height, 0, 1); s.querySelector('.bab-num').style.setProperty('--fill', (f * 100).toFixed(1) + '%'); if (r.top < innerHeight * 0.4) cur = s.id; });
+  $$('.rail-tick').forEach(a => a.classList.toggle('on', a.dataset.id === cur));
+}
+let raf = 0; addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; onScroll(); }); }, { passive: true });
+addEventListener('resize', () => { layoutTicks(); onScroll(); });
+const sheet = $('#sheet'), openB = $('#openSheet');
+openB.addEventListener('click', () => { sheet.hidden = false; openB.setAttribute('aria-expanded', 'true'); });
+const closeSheet = () => { sheet.hidden = true; openB.setAttribute('aria-expanded', 'false'); };
+$('#closeSheet').addEventListener('click', closeSheet); sheetList.addEventListener('click', e => { if (e.target.closest('a')) closeSheet(); });
+$('#toTop').addEventListener('click', e => { e.preventDefault(); scrollTo({ top: 0, behavior: RM ? 'auto' : 'smooth' }); });
+
+/* ============ GAME: GUESS THE LAW ============ */
+const GUIDE = [
+  ['Kedalaman penyelam, dasar kolam', '\\(P_g = \\rho g h\\)'],
+  ['Lapisan minyak, air, dan raksa', '\\(P = P_0 + g\\sum_i \\rho_i h_i\\)'],
+  ['Tabung U, selisih tinggi cairan', 'Penelusuran tekanan atau manometer'],
+  ['Dongkrak dengan dua piston', 'Pascal dan konservasi volume'],
+  ['Pintu bendungan, distribusi gaya', '\\(F_R = \\rho g h_c A\\), pusat tekanan'],
+  ['Dinding atau gerbang berbentuk lengkung', 'Komponen \\(F_H\\) dan \\(F_V\\)'],
+  ['Benda mengapung, massa jenis balok', 'Archimedes dan kesetimbangan gaya'],
+  ['Berat neraca pegas di dalam air', '\\(W_\\text{semu} = W - F_A\\)'],
+  ['Tangki dipercepat', '\\(\\tan\\theta = a/g\\)'],
+  ['Cairan naik dalam pipa kecil', 'Kapilaritas \\(h = 2\\sigma\\cos\\theta/(\\rho g r)\\)'],
+  ['Gelembung, tetesan', 'Young-Laplace'],
+  ['Volume mengalir setiap detik', 'Debit \\(Q = Av\\)'],
+  ['Pipa menyempit', 'Kontinuitas \\(A_1v_1 = A_2v_2\\)'],
+  ['Tekanan dan kecepatan di dua titik', 'Bernoulli (cek syarat ideal)'],
+  ['Air keluar dari lubang tangki', 'Torricelli dan parabola'],
+  ['Venturimeter atau Pitot', 'Bernoulli dan kontinuitas/stagnasi'],
+  ['Bola jatuh dalam cairan kental', 'Stokes, Archimedes, dan Newton'],
+  ['Jenis aliran dalam pipa', 'Reynolds'],
+  ['Aliran laminar di pipa panjang', 'Poiseuille'],
+  ['Gesekan dan komponen pipa', 'Darcy-Weisbach dan rugi minor'],
+  ['Pompa atau turbin', 'Persamaan head energi']
+];
+$('#guideTable').innerHTML = GUIDE.map(([a, b]) => `<tr><td>${a}</td><td>${b}</td></tr>`).join('');
+(function game() {
+  let order = [], idx = 0, score = 0, streak = 0, answered = false;
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const start = () => { order = shuffle(GUIDE.map((_, i) => i)); idx = 0; score = 0; streak = 0; show(); };
+  function show() {
+    answered = false; $('#g-next').hidden = true;
+    if (idx >= order.length) {
+      $('#g-clue').textContent = `Selesai: ${score} dari ${GUIDE.length} benar.`;
+      $('#g-opts').innerHTML = ''; $('#g-msg').textContent = score >= 18 ? 'Refleksmu sudah tajam.' : 'Ulangi sampai minimal 18 benar.';
+      $('#g-next').hidden = false; $('#g-next').textContent = 'Main lagi'; return;
+    }
+    const ci = order[idx], others = shuffle(GUIDE.map((_, i) => i).filter(i => i !== ci)).slice(0, 3), opts = shuffle([ci, ...others]);
+    $('#g-clue').textContent = '“' + GUIDE[ci][0] + '”';
+    $('#g-n').textContent = idx + 1; $('#g-n').nextSibling.textContent = '/' + GUIDE.length;
+    $('#g-opts').innerHTML = opts.map(i => `<button type="button" data-i="${i}">${GUIDE[i][1]}</button>`).join('');
+    $('#g-msg').textContent = 'Pilih satu persamaan.';
+    typeset($('#g-opts'));
+  }
+  $('#g-opts').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b || answered) return; answered = true;
+    const ci = order[idx], ok = +b.dataset.i === ci;
+    $$('#g-opts button').forEach(x => { if (+x.dataset.i === ci) x.classList.add('right'); });
+    if (ok) { score++; streak++; $('#g-msg').textContent = streak >= 3 ? `Benar, ${streak} beruntun.` : 'Benar.'; }
+    else { streak = 0; b.classList.add('wrong'); $('#g-msg').textContent = 'Belum tepat. Jawaban yang benar ditandai hijau.'; }
+    $('#g-score').textContent = score; $('#g-streak').textContent = streak;
+    $('#g-next').hidden = false; $('#g-next').textContent = idx + 1 < order.length ? 'Petunjuk berikutnya' : 'Lihat hasil';
+  });
+  $('#g-next').addEventListener('click', () => { if (idx >= order.length) { start(); $('#g-score').textContent = 0; $('#g-streak').textContent = 0; return; } idx++; show(); });
+  start();
+})();
+
+/* ============ PRACTICE QUIZ ============ */
+const QUIZ = [
+  ['Benda massanya 10 kg dan volumenya \\(0{,}005\\ \\text{m}^3\\). Tentukan massa jenisnya.', 2000, 'kg/m³', '\\(\\rho = m/V\\)', '2000'],
+  ['Berapa tekanan gauge air pada kedalaman 8 m?', 78400, 'Pa', '\\(P_g = \\rho g h\\)', '78.400'],
+  ['Dongkrak mempunyai \\(A_1 = 4\\ \\text{cm}^2\\), \\(A_2 = 80\\ \\text{cm}^2\\), dan \\(F_1 = 50\\) N. Hitung \\(F_2\\).', 1000, 'N', '\\(F_2 = F_1A_2/A_1\\)', '1000'],
+  ['Benda memindahkan air \\(0{,}004\\ \\text{m}^3\\). Berapa gaya apungnya?', 39.2, 'N', '\\(F_A = \\rho_f g V\\)', '39,2'],
+  ['Air mengalir dalam pipa luas \\(5\\ \\text{cm}^2\\) dengan kelajuan 4 m/s. Hitung debitnya.', 0.002, 'm³/s', '\\(Q = Av\\), ubah cm² ke m² dulu', '0,002'],
+  ['Luas pipa berkurang dari \\(8\\ \\text{cm}^2\\) ke \\(4\\ \\text{cm}^2\\). Jika \\(v_1 = 3\\) m/s, hitung \\(v_2\\).', 6, 'm/s', '\\(A_1v_1 = A_2v_2\\)', '6'],
+  ['Lubang tangki berada 5 m di bawah permukaan air. Berapa kecepatan keluar idealnya?', 9.9, 'm/s', '\\(v = \\sqrt{2gh}\\)', '9,90'],
+  ['Bola berjari-jari \\(0{,}001\\) m dalam fluida \\(\\mu = 1\\) Pa·s bergerak 0,1 m/s. Hitung hambat Stokes.', 1.885e-3, 'N', '\\(F_D = 6\\pi\\mu r v\\)', '1,885 × 10⁻³'],
+  ['Air mengalir dalam pipa \\(D = 0{,}01\\) m, \\(v = 0{,}2\\) m/s, \\(\\mu = 0{,}001\\) Pa·s. Hitung bilangan Reynolds.', 2000, '(tanpa satuan)', '\\(Re = \\rho v D/\\mu\\)', '2000'],
+  ['Dengan \\(r = 0{,}001\\) m, \\(\\sigma = 0{,}0728\\) N/m, \\(\\theta = 0^\\circ\\), berapa kenaikan kapiler air?', 1.49, 'cm', '\\(h = 2\\sigma\\cos\\theta/(\\rho g r)\\)', '1,49']
+];
+const parseNum = s => {
+  s = String(s).trim().replace(/\s/g, '').replace(/[×x]10\^?/i, 'e').replace(/\*10\^?/, 'e').replace(/⁻/g, '-');
+  const cands = [];
+  if (s.includes(',') && s.includes('.')) cands.push(s.replace(/\./g, '').replace(',', '.'));
+  else if (s.includes(',')) cands.push(s.replace(',', '.'));
+  else { cands.push(s); if (/^\d{1,3}(\.\d{3})+$/.test(s)) cands.push(s.replace(/\./g, '')); }
+  return cands.map(Number).filter(n => !isNaN(n));
+};
+const qState = store.get('fluida-quiz', {});
+$('#qList').innerHTML = QUIZ.map((q, i) => `<li class="q-item" data-i="${i}"><p>${q[0]}</p>
+  <div class="q-row"><input id="q-in-${i}" inputmode="decimal" autocomplete="off" aria-label="Jawaban soal ${i + 1}"><span class="unit">${q[2]}</span>
+  <button class="btn" type="button" data-check>Periksa</button><button class="btn ghost" type="button" data-hint>Petunjuk</button><span class="verdict" aria-live="polite"></span></div>
+  <p class="q-hint" hidden>Pakai ${q[3]}. Kunci: <b>${q[4]} ${q[2] === '(tanpa satuan)' ? '' : q[2]}</b></p></li>`).join('');
+function check(li, silent) {
+  const i = +li.dataset.i, q = QUIZ[i], inp = li.querySelector('input'), v = li.querySelector('.verdict');
+  const nums = parseNum(inp.value);
+  if (!inp.value.trim()) { if (!silent) { v.className = 'verdict no'; v.textContent = 'Isi jawaban dulu.'; } return false; }
+  const ok = nums.some(n => Math.abs(n - q[1]) / Math.abs(q[1]) <= 0.02);
+  const meter = i === 9 && nums.some(n => Math.abs(n * 100 - q[1]) / q[1] <= 0.02);
+  v.className = 'verdict ' + (ok ? 'ok' : 'no');
+  v.textContent = ok ? 'Benar' : meter ? 'Itu dalam meter. Tulis dalam cm.' : nums.length ? 'Belum tepat, cek satuan dan langkahmu.' : 'Angkanya tidak terbaca.';
+  qState[i] = { v: inp.value, ok }; store.set('fluida-quiz', qState); scoreQ(); return ok;
+}
+function scoreQ() { $('#q-score').textContent = Object.values(qState).filter(x => x && x.ok).length; }
+$('#qList').addEventListener('click', e => {
+  const li = e.target.closest('.q-item'); if (!li) return;
+  if (e.target.closest('[data-check]')) check(li);
+  if (e.target.closest('[data-hint]')) { const hnt = li.querySelector('.q-hint'); hnt.hidden = !hnt.hidden; }
+});
+$('#qList').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('input')) check(e.target.closest('.q-item')); });
+$$('#qList .q-item').forEach(li => { const s = qState[li.dataset.i]; if (s) { li.querySelector('input').value = s.v; check(li, true); } });
+$('#q-reset').addEventListener('click', () => { Object.keys(qState).forEach(k => delete qState[k]); store.set('fluida-quiz', qState); $$('#qList .q-item').forEach(li => { li.querySelector('input').value = ''; li.querySelector('.verdict').textContent = ''; li.querySelector('.q-hint').hidden = true; }); scoreQ(); });
+scoreQ();
+
+/* ============ OLYMPIAD STEP REVEAL ============ */
+$$('.olim').forEach(art => {
+  const steps = $$('.steps li', art), btn = $('[data-step]', art), all = $('[data-all]', art), trap = $('[data-trap]', art);
+  let n = 0;
+  steps.forEach(s => s.hidden = true);
+  const sync = () => {
+    steps.forEach((s, i) => s.hidden = i >= n);
+    if (n >= steps.length) { btn.textContent = 'Tutup pembahasan'; all.hidden = true; if (trap) trap.hidden = false; }
+    else { btn.textContent = n === 0 ? 'Buka langkah 1' : `Buka langkah ${n + 1} dari ${steps.length}`; all.hidden = false; if (trap) trap.hidden = true; }
+  };
+  btn.addEventListener('click', () => { n = n >= steps.length ? 0 : n + 1; sync(); });
+  all.addEventListener('click', () => { n = steps.length; sync(); });
+  sync();
+});
+
+/* ============ FORMULA BANK ============ */
+const BANK_SRC = String.raw`A|Massa jenis|\rho = m/V,\ m = \rho V,\ V = m/\rho
+A|Berat jenis|\gamma = \rho g = W/V,\ W = \gamma V
+A|Volume spesifik|v_s = 1/\rho
+A|Specific gravity|SG = \rho_\text{zat}/\rho_\text{ref}
+A|Tekanan|P = F_\perp/A,\ F_\perp = PA
+A|Tekanan absolut|P_\text{abs} = P_\text{atm} + P_g
+A|Tekanan vakum|P_\text{vac} = P_\text{atm} - P_\text{abs}
+A|Tekanan hidrostatis|P_h = \rho g h = \gamma h
+A|Kedalaman dari tekanan|h = P_h/(\rho g)
+A|Gradien hidrostatik|dP/dz = -\rho g
+A|Massa jenis tidak konstan|P(h) = P_0 + g\int_0^h \rho(s)\,ds
+A|Fluida berlapis|P = P_0 + g\sum_i \rho_i h_i
+A|Bejana berhubungan|\rho_1 h_1 = \rho_2 h_2
+B|Pascal|F_1/A_1 = F_2/A_2
+B|Gaya piston|F_2 = F_1 A_2/A_1
+B|Radius dan diameter piston|F_2/F_1 = (r_2/r_1)^2 = (D_2/D_1)^2
+B|Perpindahan piston|A_1x_1 = A_2x_2
+B|Usaha piston ideal|F_1x_1 = F_2x_2
+B|Efisiensi|\eta = W_\text{out}/W_\text{in}
+B|Manometer sederhana|\Delta P = \rho_m g h
+B|Manometer diferensial|\Delta P = (\rho_m - \rho_f) g h
+B|Manometer miring|\Delta P = \rho g L\sin\theta
+B|Piezometer|h = P_g/(\rho g)
+B|Barometer|P_\text{atm} = P_\text{uap} + \rho_\text{Hg} g h
+C|Elemen gaya|dF = P\,dA
+C|Resultan bidang|F_R = \int_A P\,dA = \rho g h_c A
+C|Persegi panjang dari permukaan|F_R = \tfrac12\rho g b H^2
+C|Bidang miring|h_c = y_c\sin\alpha
+C|Pusat tekanan sepanjang pelat|y_{cp} = y_c + I_G/(A y_c)
+C|Kedalaman pusat tekanan|h_{cp} = h_c + I_G\sin^2\alpha/(A h_c)
+C|Pelat vertikal mulai permukaan|h_{cp} = 2H/3
+C|Momen gaya tekanan|M_O = \int_A rP\,dA,\ d_{cp} = M_O/F_R
+C|Momen kedua luas persegi panjang|I_x = bH^3/12,\ I_y = Hb^3/12
+C|Momen kedua luas segitiga|I_G = bH^3/36
+C|Momen kedua luas lingkaran|I = \pi r^4/4 = \pi D^4/64
+C|Momen polar lingkaran|J = \pi r^4/2
+C|Momen kedua luas elips|I_x = \pi ab^3/4,\ I_y = \pi a^3b/4
+C|Sumbu sejajar|I_O = I_G + Ad^2
+C|Momen kedua luas umum|I_x = \int y^2 dA,\ I_y = \int x^2 dA
+C|Produk inersia luas|I_{xy} = \int xy\,dA
+C|Momen polar|J_O = I_x + I_y
+C|Komponen bidang lengkung|F_H = \rho g h_c A_v,\ |F_V| = \rho g V_\text{imajiner}
+C|Resultan bidang lengkung|F_R = \sqrt{F_H^2 + F_V^2}
+D|Gaya apung|F_A = \rho_f g V_\text{terdesak}
+D|Berat semu|W_s = W - F_A
+D|Normal di dasar|N = W - F_A
+D|Fraksi volume terapung|V_s/V_b = \rho_b/\rho_f
+D|Tinggi terendam balok|h_s = H\rho_b/\rho_f
+D|Persen muncul|100(1 - \rho_b/\rho_f)\,\%
+D|Massa jenis dari penimbangan|\rho_b = \rho_f W_\text{udara}/(W_\text{udara} - W_s)
+D|Benda di beberapa lapisan|F_A = g\sum_i \rho_i V_i
+D|Tambahan beban|\Delta h = \Delta m/(\rho_f A)
+D|Metacentric radius|BM = I_{wp}/V_\text{disp}
+D|Metacentric height|GM = KB + BM - KG
+D|Momen pemulih awal|M_R \approx W\,GM\sin\theta
+E|Kemiringan tangki bergerak|\tan\theta = a/g
+E|Beda tinggi ujung tangki|\Delta h = aL/g
+E|Gravitasi efektif|g_\text{ef} = g \pm a
+E|Tekanan tangki dipercepat|P_h = \rho g_\text{ef} h
+E|Permukaan bebas berotasi|z(r) - z(0) = \omega^2 r^2/(2g)
+E|Selisih tinggi tepi-pusat|\Delta h = \omega^2R^2/(2g)
+E|Gradien tekanan radial|\partial P/\partial r = \rho\omega^2 r
+F|Tegangan permukaan|\sigma = F/L
+F|Selaput sabun|F = 2\sigma L
+F|Energi permukaan|W = \sigma\Delta A
+F|Young-Laplace|\Delta P = \sigma(1/R_1 + 1/R_2)
+F|Tetesan|\Delta P = 2\sigma/r
+F|Gelembung sabun|\Delta P = 4\sigma/r
+F|Permukaan silinder|\Delta P = \sigma/r
+F|Kapiler tabung|h = 2\sigma\cos\theta/(\rho g r)
+F|Kapiler dua pelat|h = 2\sigma\cos\theta/(\rho g d)
+F|Sudut kontak Young|\sigma_{SV} = \sigma_{SL} + \sigma_{LV}\cos\theta
+F|Kerja adhesi|W_A = \sigma_{LV}(1 + \cos\theta)
+F|Spreading coefficient|S = \sigma_{SV} - \sigma_{SL} - \sigma_{LV}
+F|Modulus bulk|B = -V\,dP/dV
+F|Kompresibilitas|\beta = 1/B
+F|Laju bunyi fluida|c = \sqrt{B_s/\rho}
+F|Gas ideal|PV = nR_uT
+F|Atmosfer isotermal|P = P_0e^{-g\Delta z/(R_sT)}
+G|Debit volume|Q = dV/dt = Av
+G|Laju massa|\dot m = \rho Q = \rho Av
+G|Kontinuitas|\rho_1A_1v_1 = \rho_2A_2v_2
+G|Kontinuitas inkompresibel|A_1v_1 = A_2v_2
+G|Bernoulli|P + \tfrac12\rho v^2 + \rho g z = C
+G|Bernoulli dalam head|P/(\rho g) + v^2/(2g) + z = C_h
+G|Tekanan dinamis|P_d = \tfrac12\rho v^2
+G|Tekanan stagnasi|P_0 = P + \tfrac12\rho v^2
+G|Torricelli|v = \sqrt{2gh}
+G|Jangkauan pancaran|x = 2\sqrt{hH}
+G|Debit orifis nyata|Q = C_dA_o\sqrt{2gh}
+G|Waktu pengosongan tangki|t = \frac{2A_T}{C_dA_o\sqrt{2g}}(\sqrt{h_i} - \sqrt{h_f})
+G|Venturi|v_2 = \sqrt{2\Delta P/[\rho(1 - (A_2/A_1)^2)]}
+G|Pitot|v = \sqrt{2\Delta P/\rho}
+G|Viskositas Newtonian|\tau = \mu\,dv/dy
+G|Gaya geser dua pelat|F = \mu A\,\Delta v/L
+G|Viskositas kinematis|\nu = \mu/\rho
+G|Hambat Stokes|F_D = 6\pi\mu r v
+G|Kecepatan terminal Stokes|v_t = 2r^2(\rho_b - \rho_f)g/(9\mu)
+G|Reynolds|Re = \rho vD/\mu = vD/\nu
+G|Poiseuille|Q = \pi R^4\Delta P/(8\mu L)
+G|Kecepatan maksimum laminar|v_\text{max} = 2\bar v
+G|Profil laminar pipa|v(r) = \Delta P(R^2 - r^2)/(4\mu L)
+G|Hambatan hidraulik|R_h = 8\mu L/(\pi R^4)
+G|Rugi Darcy-Weisbach|h_f = f_D(L/D)\,v^2/(2g)
+G|Rugi minor|h_m = Kv^2/(2g)
+G|Faktor gesekan laminar|f_D = 64/Re
+G|Daya fluida|\mathcal P = \rho gQH`;
+const CATS = { A: 'Sifat fluida dan tekanan', B: 'Pascal dan alat ukur', C: 'Gaya hidrostatik dan geometri', D: 'Archimedes dan stabilitas', E: 'Percepatan dan rotasi', F: 'Permukaan, kapilaritas, atmosfer', G: 'Fluida dinamis dan pipa' };
+const BANK = BANK_SRC.split('\n').map(l => { const [c, n, x] = l.split('|'); return { c, n, x }; });
+const bankEl = $('#bank');
+bankEl.innerHTML = BANK.map((f, i) => `<button type="button" class="fcard" data-c="${f.c}" data-s="${(f.n + ' ' + CATS[f.c]).toLowerCase()}"><span class="fname"><span>${f.n}</span><i>${f.c}</i></span><span class="ftex">\\(${f.x}\\)</span></button>`).join('');
+let cat = 'all';
+$('#bankChips').innerHTML = `<button type="button" data-c="all" aria-pressed="true">Semua</button>` + Object.entries(CATS).map(([k, v]) => `<button type="button" data-c="${k}" aria-pressed="false">${k}. ${v}</button>`).join('');
+function filterBank() {
+  const q = $('#bankSearch').value.trim().toLowerCase(); let n = 0;
+  $$('.fcard', bankEl).forEach(cd => { const show = (cat === 'all' || cd.dataset.c === cat) && (!q || cd.dataset.s.includes(q)); cd.hidden = !show; if (show) n++; });
+  $('#bankCount').textContent = n + ' rumus ditampilkan';
+}
+$('#bankChips').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; cat = b.dataset.c; $$('#bankChips button').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); filterBank(); });
+$('#bankSearch').addEventListener('input', filterBank);
+$('#flashMode').addEventListener('change', e => { bankEl.classList.toggle('flash', e.target.checked); $$('.fcard', bankEl).forEach(c => c.classList.remove('open')); });
+bankEl.addEventListener('click', e => { const cd = e.target.closest('.fcard'); if (cd && bankEl.classList.contains('flash')) cd.classList.toggle('open'); });
+filterBank();
+
+/* ---------- start ---------- */
+readColors();
+layoutTicks(); onScroll();
+window.addEventListener('load', () => { layoutTicks(); onScroll(); });
+requestAnimationFrame(loop);
+document.addEventListener('mathjax-done', () => { layoutTicks(); });
+if (window.MathJax) { const poll = setInterval(() => { if (MathJax.startup && MathJax.startup.promise) { clearInterval(poll); MathJax.startup.promise.then(() => { layoutTicks(); onScroll(); }); } }, 300); }
+})();
+</script>
+
+</body></html>
